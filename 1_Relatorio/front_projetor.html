@@ -1,0 +1,1574 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>[Projetor] Planejamento Integrado · Parte II</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- VERSAO PARA PROJETOR: Atkinson Hyperlegible + Inter (alta legibilidade em telas grandes) -->
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+:root{
+  --bg:#0B0E13;
+  --surface:#13171F;
+  --surface-2:#1A2029;
+  --line:#262C36;
+  --line-2:#333A47;
+  --ink:#EDE7DA;
+  --ink-soft:#C9C2B2;
+  --mute:#8C8676;
+  --brass:#C9A267;
+  --brass-soft:#A5853C;
+  --brass-glow:rgba(201,162,103,.18);
+  --teal:#7CC0BF;
+  --good:#88C99A;
+  --warn:#E1B559;
+  --bad:#D9826F;
+  /* === VERSAO PARA PROJETOR: fontes de alta legibilidade ===
+     - Serif/display: Atkinson Hyperlegible (desenhada para legibilidade max)
+     - Sans body: Inter (excelente leitura em projetor)
+     - Mono: JetBrains Mono mantida (otima para codigo) */
+  --serif:'Atkinson Hyperlegible','Iowan Old Style',Cambria,Georgia,serif;
+  --sans:'Inter','Helvetica Neue',system-ui,sans-serif;
+  --mono:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+  --max:1200px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:15px;
+  line-height:1.65;
+  font-weight:400;
+  letter-spacing:0;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 10% 0%, rgba(201,162,103,.06), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(124,192,191,.04), transparent 70%);
+  background-attachment:fixed;
+}
+
+/* ====== HEADER ====== */
+.hero{
+  border-bottom:1px solid var(--line);
+  padding:80px 6% 70px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'II';
+  position:absolute;
+  right:-2%;
+  top:-30%;
+  font-family:var(--serif);
+  font-size:32rem;
+  font-weight:300;
+  color:var(--line);
+  opacity:.45;
+  line-height:.85;
+  letter-spacing:-.05em;
+  font-style:italic;
+  pointer-events:none;
+  user-select:none;
+}
+.hero-inner{position:relative;max-width:var(--max);margin:0 auto}
+.eyebrow{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--brass);
+  letter-spacing:.32em;
+  text-transform:uppercase;
+  font-weight:500;
+  margin-bottom:24px;
+  display:flex;align-items:center;gap:16px;
+}
+.eyebrow::before,.eyebrow::after{
+  content:'';flex:0 0 28px;height:1px;background:var(--brass-soft);
+}
+.eyebrow::after{flex:1}
+.h1{
+  font-family:var(--serif);
+  font-weight:400;
+  font-size:clamp(40px, 6.2vw, 76px);
+  line-height:1.02;
+  letter-spacing:-.025em;
+  color:var(--ink);
+  margin:0 0 22px;
+  max-width:18ch;
+}
+.h1 em{font-style:italic;color:var(--brass);
+  font-style:italic;
+  font-size:19px;
+  font-weight:300;
+  color:var(--ink-soft);
+  max-width:60ch;
+  letter-spacing:0;
+}
+.hero-meta{
+  margin-top:38px;display:flex;gap:40px;flex-wrap:wrap;
+  padding-top:24px;border-top:1px solid var(--line);
+}
+.hero-meta dt{font-family:var(--mono);font-size:10.5px;color:var(--mute);
+  letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px}
+.hero-meta dd{font-family:var(--serif);font-size:17px;color:var(--ink);top:0;z-index:30;
+  background:rgba(11,14,19,.92);
+  backdrop-filter:blur(14px) saturate(140%);
+  border-bottom:1px solid var(--line);
+}
+nav.tabs ul{
+  list-style:none;display:flex;gap:0;max-width:var(--max);margin:0 auto;padding:0 6%;
+  overflow-x:auto;scrollbar-width:none;
+}
+nav.tabs ul::-webkit-scrollbar{display:none}
+nav.tabs button{
+  background:none;border:none;color:var(--mute);
+  font-family:var(--mono);font-size:11px;font-weight:500;
+  letter-spacing:.22em;text-transform:uppercase;
+  padding:22px 22px 22px 0;margin-right:28px;
+  cursor:pointer;position:relative;white-space:nowrap;
+  transition:color .25s ease;
+}
+nav.tabs button:hover{color:var(--ink-soft)}
+nav.tabs button.active{color:var(--brass)}
+nav.tabs button::before{
+  content:'';position:absolute;left:0;bottom:-1px;
+  width:0;height:2px;background:var(--brass);transition:width .35s cubic-bezier(.2,.7,.2,1);
+}
+nav.tabs button.active::before{width:calc(100% - 28px)}
+
+/* ====== MAIN ====== */
+main{max-width:var(--max);margin:0 auto;padding:60px 6% 80px}
+section{display:none;animation:fadeUp .55s cubic-bezier(.2,.65,.2,1) both}
+section.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ====== TYPE ====== */
+h2{
+  font-family:var(--serif);
+  font-weight:400;
+  font-size:46px;
+  line-height:1.05;
+  letter-spacing:-.022em;
+  color:var(--ink);
+  margin:0 0 16px;
+}
+h2 .num{
+  font-family:var(--serif);
+  font-style:italic;
+  font-size:.55em;
+  color:var(--brass);
+  margin-right:18px;
+}
+.lead{
+  font-family:var(--serif);
+  font-style:italic;
+  font-size:20px;
+  line-height:1.5;
+  color:var(--ink-soft);
+  max-width:62ch;
+  margin:4px 0 36px;
+}
+h3.sec-h{
+  font-family:var(--mono);font-weight:500;font-size:11px;
+  letter-spacing:.28em;text-transform:uppercase;color:var(--brass);
+  margin:42px 0 14px;display:flex;align-items:center;gap:14px;
+}
+h3.sec-h::after{content:'';flex:1;height:1px;background:var(--line)}
+.sec-tag{
+  font-family:var(--mono);font-size:9.5px;
+  background:var(--surface-2);color:var(--mute);
+  padding:3px 8px;border-radius:3px;letter-spacing:.18em;
+  border:1px solid var(--line);
+}
+p{color:var(--ink);max-width:62ch;margin:0 0 16px}
+p.dim{color:var(--ink-soft)}
+strong{font-weight:600;color:var(--ink)}
+em{font-family:var(--serif);font-style:italic;color:var(--brass);font-size:.88em;background:var(--surface-2);
+  padding:1px 6px;border-radius:3px;color:var(--brass);border:1px solid var(--line)}
+
+/* ====== STAT CARDS ====== */
+.stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+  margin:18px 0 40px;border:1px solid var(--line);border-radius:2px;
+  background:var(--surface);
+  overflow:hidden;
+}
+.stat{
+  padding:24px 26px;position:relative;
+  border-right:1px solid var(--line);display:flex;flex-direction:column;gap:6px;
+}
+.stat:last-child{border-right:none}
+.stat-label{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--mute);font-weight:500;
+}
+.stat-val{
+  font-family:var(--serif);font-size:30px;font-weight:400;color:var(--ink);
+  letter-spacing:-.018em;line-height:1.1;
+}
+.stat-sub{font-size:12px;color:var(--mute);margin-top:2px}
+
+/* ====== GRID HELPERS ====== */
+.grid{display:grid;gap:14px;margin:18px 0 30px}
+.grid.cols-2{grid-template-columns:repeat(2,1fr)}
+.grid.cols-3{grid-template-columns:repeat(3,1fr)}
+
+/* ====== CARDS ====== */
+.card{
+  background:var(--surface);border:1px solid var(--line);
+  padding:24px 26px;border-radius:2px;position:relative;
+  transition:border-color .3s ease, transform .3s ease;
+}
+.card:hover{border-color:var(--brass-soft);transform:translateY(-1px)}
+.card .card-tag{
+  font-family:var(--mono);font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--brass);
+}
+.card h4{
+  font-family:var(--serif);font-weight:500;font-size:18px;
+  color:var(--ink);margin:4px 0 8px;
+}
+.card p{font-size:14px;color:var(--ink-soft);margin:0}
+
+/* ====== NETWORK DIAGRAM ====== */
+.network{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+  padding:38px 32px;background:var(--surface);
+  border:1px solid var(--line);border-radius:2px;
+  margin:24px 0 36px;position:relative;
+}
+.network::before,.network::after{
+  content:'';position:absolute;left:32px;right:32px;height:1px;background:var(--line);
+}
+.network::before{top:38px}
+.network::after{bottom:38px}
+.netcol{display:flex;flex-direction:column;align-items:center;gap:14px;position:relative}
+.netcol::after{
+  content:'';position:absolute;right:-1px;top:30px;bottom:30px;width:1px;background:var(--line);
+}
+.netcol:last-child::after{display:none}
+.netcol-lbl{
+  font-family:var(--mono);font-size:10px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--mute);margin-bottom:8px;
+}
+.node{
+  font-family:var(--serif);font-size:22px;
+  color:var(--ink);padding:14px 26px;
+  border:1px solid var(--line);background:var(--surface-2);
+  border-radius:2px;min-width:104px;text-align:center;
+  position:relative;
+  transition:all .3s ease;
+}
+.node small{display:block;font-family:var(--mono);font-size:9px;
+  letter-spacing:.16em;color:var(--mute);margin-top:4px;text-transform:uppercase;font-style:normal;}
+.node:hover{border-color:var(--brass);color:var(--brass)}
+
+/* ====== KaTeX FORMULAS ====== */
+.objective{
+  margin:20px 0 36px;border:1px solid var(--line);border-radius:2px;
+  background:linear-gradient(180deg, rgba(201,162,103,.04), var(--surface));
+  position:relative;overflow:hidden;
+}
+.objective::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brass);
+}
+.objective-head{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--brass);padding:18px 32px 6px;
+}
+.objective-body{padding:14px 32px 30px}
+.objective-body .katex-display{margin:0}
+.objective-note{
+  font-family:var(--sans);font-style:normal;font-size:14.5px;font-weight:300;
+  color:var(--ink-soft);padding:22px 32px 24px;
+  max-width:78ch;margin:0 auto;
+  line-height:1.7;letter-spacing:0.005em;
+}
+.objective-note p{margin:0 0 12px}
+.objective-note p:last-child{margin-bottom:0}
+.objective-note strong{color:var(--ink);font-weight:600}
+.objective-note em{font-style:italic;color:var(--accent)}
+.objective-note code{font-size:13px;background:var(--surface);padding:1px 6px;border-radius:3px;color:var(--accent-2);font-family:var(--mono)}
+
+.restr-list{display:grid;grid-template-columns:1fr 1fr;gap:0;
+  border:1px solid var(--line);background:var(--surface);border-radius:2px;
+  margin:18px 0 30px;overflow:hidden;}
+.restr{padding:24px 30px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.restr:nth-child(2n){border-right:none}
+.restr:nth-last-child(-n+2){border-bottom:none}
+.restr-head{display:flex;align-items:baseline;gap:14px;margin-bottom:10px}
+.restr-id{
+  font-family:var(--serif);font-style:italic;font-size:32px;
+  color:var(--brass);line-height:1;font-weight:400;
+  letter-spacing:-.02em;min-width:48px;
+}
+.restr-title{
+  font-family:var(--serif);font-size:15.5px;color:var(--ink);
+  font-weight:500;line-height:1.3;
+}
+.restr-math{
+  padding:8px 0 0;font-size:13.5px;color:var(--ink-soft);
+  overflow-x:auto;
+}
+.restr-math .katex{font-size:1em !important}
+.restr-math .katex-display{margin:.4em 0;text-align:left}
+.restr-math .katex-display > .katex{text-align:left;padding-left:0}
+
+/* ====== SCENARIO TABS ====== */
+.sctabs{
+  display:flex;gap:0;margin:18px 0 28px;
+  border:1px solid var(--line);border-radius:2px;background:var(--surface);
+  width:fit-content;overflow:hidden;
+}
+.sc-btn{
+  background:none;border:none;color:var(--mute);
+  font-family:var(--mono);font-size:11px;font-weight:500;
+  letter-spacing:.2em;text-transform:uppercase;
+  padding:13px 22px;cursor:pointer;
+  border-right:1px solid var(--line);position:relative;
+  transition:all .25s ease;
+}
+.sc-btn:last-child{border-right:none}
+.sc-btn:hover{color:var(--ink-soft);background:var(--surface-2)}
+.sc-btn.active{color:var(--brass);background:var(--surface-2)}
+.sc-btn.active::after{
+  content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--brass);
+}
+.scen{display:none}
+.scen.active{display:block;animation:fadeUp .4s ease both}
+
+/* ====== TABLES ====== */
+.tbl-wrap{
+  overflow-x:auto;margin:8px 0 20px;
+  border:1px solid var(--line);border-radius:2px;background:var(--surface);
+}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead th{
+  font-family:var(--mono);font-size:10px;
+  letter-spacing:.2em;text-transform:uppercase;
+  color:var(--mute);font-weight:500;
+  text-align:left;padding:14px 16px 12px;
+  border-bottom:1px solid var(--line-2);
+  background:var(--surface);
+  position:sticky;top:0;
+}
+thead th.num,td.num{text-align:right;font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+tbody td{
+  padding:13px 16px;color:var(--ink);
+  border-bottom:1px solid var(--line);
+}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(201,162,103,.04)}
+tbody tr:nth-child(2n) td{background:rgba(255,255,255,.012)}
+.empty{color:var(--mute);font-style:italic;font-family:var(--serif);padding:14px;font-size:14px;padding:12px 18px}
+table.dre tbody td:first-child{color:var(--ink-soft)}
+tr.dre-total td{
+  background:var(--surface-2)!important;
+  color:var(--brass)!important;
+  font-family:var(--serif);font-size:18px;font-weight:500;padding:18px;
+  border-top:1px solid var(--brass-soft);border-bottom:none;
+}
+tr.dre-total td:first-child{letter-spacing:.03em}
+
+/* ====== BAR ====== */
+.bar{
+  display:inline-block;width:90px;height:6px;background:var(--line);
+  border-radius:0;overflow:hidden;vertical-align:middle;margin-right:10px;
+}
+.bar i{display:block;height:100%;background:var(--brass);transition:width .4s ease}
+.bar.bar--warn i{background:var(--warn)}
+.bar.bar--full i{background:var(--bad)}
+.bar-val{font-family:var(--mono);font-size:11.5px;color:var(--mute);vertical-align:middle}
+
+/* ====== DETAILS ACCORDION ====== */
+details.acc{
+  background:none;border:none;margin:8px 0 14px;padding:0;
+}
+details.acc summary{
+  list-style:none;cursor:pointer;
+  font-family:var(--mono);font-size:11px;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-soft);font-weight:500;
+  padding:12px 0;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;
+  transition:color .2s ease;
+}
+details.acc summary:hover{color:var(--brass)}
+details.acc summary::-webkit-details-marker{display:none}
+details.acc summary::before{
+  content:'+';font-family:var(--serif);font-size:22px;color:var(--brass);
+  width:18px;display:inline-block;transition:transform .25s ease;line-height:0;margin-top:2px;
+}
+details.acc[open] summary::before{transform:rotate(45deg)}
+
+/* ====== MATURITY ====== */
+.matur{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:24px 0 40px;
+  background:var(--surface);border:1px solid var(--line);border-radius:2px;overflow:hidden;
+}
+.stage{
+  padding:32px 26px 28px;position:relative;
+  border-right:1px solid var(--line);
+}
+.stage:last-child{border-right:none}
+.stage-num{
+  font-family:var(--serif);font-style:italic;font-weight:300;
+  font-size:80px;line-height:.9;color:var(--line-2);
+  letter-spacing:-.04em;
+  margin-bottom:14px;
+}
+.stage h4{
+  font-family:var(--serif);font-weight:500;font-size:20px;
+  color:var(--ink);margin:0 0 8px;
+}
+.stage .desc{font-size:13.5px;color:var(--ink-soft);line-height:1.45}
+.stage.current{background:linear-gradient(180deg,rgba(225,181,89,.07),transparent)}
+.stage.current .stage-num{color:var(--brass);opacity:.9}
+.stage.target{background:linear-gradient(180deg,rgba(136,201,154,.06),transparent)}
+.stage.target .stage-num{color:var(--good);opacity:.7}
+.stage-tag{
+  display:inline-block;margin-top:14px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;
+  text-transform:uppercase;padding:4px 10px;
+  border:1px solid;border-radius:2px;
+}
+.stage.current .stage-tag{border-color:var(--warn);color:var(--warn);background:rgba(225,181,89,.08)}
+.stage.target .stage-tag{border-color:var(--good);color:var(--good);background:rgba(136,201,154,.06)}
+
+/* ====== ROADMAP ====== */
+.road{display:grid;gap:14px;margin:18px 0 30px}
+.road .ph{
+  display:grid;grid-template-columns:140px 130px 1fr;gap:30px;align-items:start;
+  padding:26px 30px;background:var(--surface);
+  border:1px solid var(--line);border-radius:2px;
+  position:relative;
+  transition:border-color .3s ease;
+}
+.road .ph:hover{border-color:var(--brass-soft)}
+.road .ph .ph-num{
+  font-family:var(--serif);font-weight:300;font-size:54px;
+  color:var(--brass);line-height:.9;font-style:italic;
+  letter-spacing:-.03em;
+}
+.road .ph .ph-name{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--mute);font-weight:500;
+  margin-top:4px;display:block;
+}
+.road .ph .ph-dur{
+  font-family:var(--serif);font-size:22px;color:var(--ink);font-style:italic;
+  letter-spacing:-.01em;line-height:1.1;
+}
+.road .ph .ph-dur-lbl{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--mute);margin-top:6px;display:block;
+}
+.road .ph .desc{font-size:14px;color:var(--ink-soft);line-height:1.55}
+.road .ph .desc strong{color:var(--ink)}
+
+/* ====== FOOTER ====== */
+footer{
+  border-top:1px solid var(--line);
+  padding:36px 6%;color:var(--mute);
+  font-family:var(--mono);font-size:11px;
+  letter-spacing:.16em;text-transform:uppercase;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width:900px){
+  .stats,.matur,.network{grid-template-columns:repeat(2,1fr)}
+  .stat{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .stat:nth-child(2n){border-right:none}
+  .stat:nth-last-child(-n+2){border-bottom:none}
+  .stage{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .stage:nth-child(2n){border-right:none}
+  .stage:nth-last-child(-n+2){border-bottom:none}
+  .restr-list{grid-template-columns:1fr}
+  .restr{border-right:none}
+  .restr:nth-last-child(2){border-bottom:1px solid var(--line)}
+  .road .ph{grid-template-columns:1fr;gap:14px}
+  .hero::before{font-size:20rem;right:-10%}
+  h2{font-size:34px}
+}
+@media (max-width:560px){
+  .stats{grid-template-columns:1fr}
+  .stat{border-right:none}
+  .h1{font-size:36px}
+}
+
+/* === Param analysis === */
+
+/* === Analise Parametrica (Dashboard layout) === */
+.param-wide{max-width:1500px;margin-left:calc((var(--max) - 1500px)/2);margin-right:calc((var(--max) - 1500px)/2)}
+@media (max-width:1500px){.param-wide{max-width:100%;margin-left:0;margin-right:0}}
+.param-controls{
+  display:grid;grid-template-columns:1fr;gap:14px;
+  background:var(--surface);border:1px solid var(--line);
+  padding:16px 20px;border-radius:4px;margin:14px 0 14px;
+}
+.param-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.param-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--mute);min-width:64px}
+.param-radio{display:flex;gap:14px;flex-wrap:wrap}
+.param-radio label{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--ink-soft);cursor:pointer}
+.param-radio input{accent-color:var(--brass);cursor:pointer}
+.param-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:1100px){.param-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:600px){.param-grid{grid-template-columns:1fr}}
+.param-slider-block{background:rgba(255,255,255,0.02);border:1px solid var(--line);padding:10px 12px;border-radius:4px}
+.param-slider-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.param-slider-name{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft)}
+.param-slider-display{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--brass)}
+.param-slider-display small{font-size:10px;color:var(--mute);text-transform:uppercase;margin-left:2px}
+.param-slider{
+  width:100%;-webkit-appearance:none;appearance:none;height:5px;
+  background:linear-gradient(90deg, rgba(91,192,235,0.4) 0%, var(--brass) 100%);
+  border-radius:3px;outline:none;cursor:pointer;margin:2px 0;
+}
+.param-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:16px;height:16px;
+  background:var(--brass);border:2px solid #0a0a0f;
+  border-radius:50%;cursor:pointer;box-shadow:0 0 0 1px var(--brass);
+}
+.param-slider::-moz-range-thumb{width:16px;height:16px;background:var(--brass);border:2px solid #0a0a0f;border-radius:50%;cursor:pointer}
+.param-slider-range{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--mute);margin-top:1px}
+.param-slider-hint{font-size:10.5px;color:var(--mute);font-style:italic;margin-top:4px;line-height:1.35}
+.param-reset{
+  margin-left:auto;align-self:center;
+  background:transparent;color:var(--ink-soft);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;
+  border:1px solid var(--line);padding:7px 14px;border-radius:3px;cursor:pointer;transition:all 0.15s;
+}
+.param-reset:hover{border-color:var(--brass);color:var(--brass)}
+.param-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+@media (max-width:760px){.param-kpis{grid-template-columns:repeat(2,1fr)}}
+.param-kpi{padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:4px;display:flex;flex-direction:column}
+.param-kpi-label{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:0.12em;color:var(--mute);margin-bottom:5px}
+.param-kpi-val{font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:-0.01em;color:var(--ink)}
+.param-kpi-val.cool{color:#5bc0eb}
+.param-kpi-val.warn{color:#e1b559}
+.param-kpi-val.brass{color:var(--brass)}
+.param-kpi-val.bad{color:#d9826f}
+.param-kpi-sub{font-size:10.5px;color:var(--mute);margin-top:3px;font-family:var(--mono)}
+.param-kpi-arrow{font-family:var(--mono);font-size:13px;margin-left:6px;display:inline-block;vertical-align:baseline}
+
+/* === Grid de graficos === */
+.param-charts-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:12px;margin:14px 0 10px}
+@media (max-width:1100px){.param-charts-grid{grid-template-columns:1fr}}
+.param-chart-card{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:10px 14px 14px}
+.param-chart-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;gap:10px;flex-wrap:wrap}
+.param-chart-title{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-soft);font-weight:600}
+.param-chart-sub{font-size:11px;color:var(--mute);font-style:italic}
+.param-chart-wrap{overflow:hidden}
+.param-chart-wrap canvas{width:100%;max-width:100%;height:auto;display:block}
+.param-chart-controls{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+.param-select{
+  background:var(--surface-2,#1A2029);color:var(--ink);border:1px solid var(--line);
+  font-family:var(--mono);font-size:11px;padding:4px 8px;border-radius:3px;cursor:pointer;
+}
+.param-select:focus{outline:1px solid var(--brass)}
+
+/* === Analise Parametrica Completa === */
+.param-controls{
+  display:grid;grid-template-columns:1fr;gap:20px;
+  background:var(--surface);border:1px solid var(--line);
+  padding:24px 26px;border-radius:4px;margin:18px 0 24px;
+}
+.param-row{display:grid;grid-template-columns:160px 1fr;align-items:center;gap:18px}
+.param-label{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.12em;color:var(--mute)}
+.param-radio{display:flex;gap:18px;flex-wrap:wrap}
+.param-radio label{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--ink-soft);cursor:pointer}
+.param-radio input{accent-color:var(--brass);cursor:pointer}
+.param-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+@media (max-width:760px){.param-grid{grid-template-columns:1fr}.param-row{grid-template-columns:1fr;gap:6px}}
+.param-slider-block{background:rgba(255,255,255,0.02);border:1px solid var(--line);padding:14px 16px;border-radius:4px}
+.param-slider-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.param-slider-name{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-soft)}
+.param-slider-display{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--brass)}
+.param-slider-display small{font-size:11px;color:var(--mute);text-transform:uppercase;margin-left:3px}
+.param-slider{
+  width:100%;-webkit-appearance:none;appearance:none;height:6px;
+  background:linear-gradient(90deg, rgba(91,192,235,0.4) 0%, var(--brass) 100%);
+  border-radius:3px;outline:none;cursor:pointer;margin:4px 0 4px;
+}
+.param-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:18px;height:18px;
+  background:var(--brass);border:2px solid #0a0a0f;
+  border-radius:50%;cursor:pointer;box-shadow:0 0 0 1px var(--brass);
+}
+.param-slider::-moz-range-thumb{
+  width:18px;height:18px;background:var(--brass);border:2px solid #0a0a0f;
+  border-radius:50%;cursor:pointer;
+}
+.param-slider-range{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--mute);margin-top:2px}
+.param-slider-hint{font-size:11.5px;color:var(--mute);font-style:italic;margin-top:6px;line-height:1.4}
+.param-reset{
+  align-self:start;justify-self:end;
+  background:transparent;color:var(--ink-soft);
+  font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;
+  border:1px solid var(--line);padding:8px 16px;border-radius:3px;cursor:pointer;
+  transition:all 0.15s;
+}
+.param-reset:hover{border-color:var(--brass);color:var(--brass)}
+.param-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}
+@media (max-width:760px){.param-kpis{grid-template-columns:repeat(2,1fr)}}
+.param-kpi{padding:18px 20px;background:var(--surface);border:1px solid var(--line);border-radius:4px;display:flex;flex-direction:column}
+.param-kpi-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.14em;color:var(--mute);margin-bottom:8px}
+.param-kpi-val{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-0.01em;color:var(--ink)}
+.param-kpi-val.cool{color:#5bc0eb}
+.param-kpi-val.warn{color:#e1b559}
+.param-kpi-val.brass{color:var(--brass)}
+.param-kpi-val.bad{color:#d9826f}
+.param-kpi-sub{font-size:11px;color:var(--mute);margin-top:4px;font-family:var(--mono)}
+.param-kpi-arrow{font-family:var(--mono);font-size:14px;margin-left:6px;display:inline-block;vertical-align:baseline;transition:opacity 0.2s}
+
+.param-chart-wrap{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:16px;margin:14px 0 24px;overflow-x:auto}
+.param-chart-wrap canvas{width:100%;max-width:100%;height:auto;display:block}
+.param-chart-controls{margin:10px 0 4px;display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+.param-select{
+  background:var(--surface);color:var(--ink);border:1px solid var(--line);
+  font-family:var(--mono);font-size:12.5px;padding:6px 10px;border-radius:3px;
+  cursor:pointer;
+}
+.param-select:focus{outline:1px solid var(--brass)}
+
+/* === Analise Parametrica === */
+.param-controls{
+  display:grid;grid-template-columns:1fr;gap:18px;
+  background:var(--surface);border:1px solid var(--line);
+  padding:22px 26px;border-radius:4px;margin:18px 0 24px;
+}
+.param-row{display:grid;grid-template-columns:160px 1fr;align-items:center;gap:18px}
+.param-label{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.12em;color:var(--mute)}
+.param-radio{display:flex;gap:18px;flex-wrap:wrap}
+.param-radio label{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--ink-soft);cursor:pointer}
+.param-radio input{accent-color:var(--brass);cursor:pointer}
+.param-toggle{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.param-toggle label{display:inline-flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.param-toggle input{accent-color:var(--accent);cursor:pointer;width:14px;height:14px}
+.param-hint{font-size:12.5px;color:var(--mute);font-style:italic}
+.param-slider-wrap{display:flex;align-items:center;gap:16px}
+.param-slider{
+  flex:1;-webkit-appearance:none;appearance:none;height:6px;
+  background:linear-gradient(90deg, var(--brass) 0%, var(--accent) 100%);
+  border-radius:3px;outline:none;cursor:pointer;
+}
+.param-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:20px;height:20px;
+  background:var(--brass);border:2px solid var(--ink);
+  border-radius:50%;cursor:pointer;
+}
+.param-slider::-moz-range-thumb{
+  width:20px;height:20px;background:var(--brass);border:2px solid var(--ink);
+  border-radius:50%;cursor:pointer;
+}
+.param-slider-info{display:flex;align-items:baseline;gap:4px;min-width:120px;font-family:var(--mono)}
+.param-value{font-size:22px;font-weight:700;color:var(--brass)}
+.param-unit{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:0.1em}
+.param-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}
+@media (max-width:760px){.param-kpis{grid-template-columns:repeat(2,1fr)}.param-row{grid-template-columns:1fr;gap:6px}}
+.param-kpi{padding:18px 20px;background:var(--surface);border:1px solid var(--line);border-radius:4px;display:flex;flex-direction:column}
+.param-kpi-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.14em;color:var(--mute);margin-bottom:8px}
+.param-kpi-val{font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-0.01em;color:var(--ink)}
+.param-kpi-val.cool{color:var(--cool, #5bc0eb)}
+.param-kpi-val.warn{color:var(--warn, #e1b559)}
+.param-kpi-val.brass{color:var(--brass)}
+.param-kpi-sub{font-size:11px;color:var(--mute);margin-top:4px;font-family:var(--mono)}
+.param-kpi-arrow{font-family:var(--mono);font-size:14px;margin-left:6px;display:inline-block;vertical-align:baseline;transition:opacity 0.2s}
+
+.param-chart-wrap{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:16px;margin:14px 0 24px;overflow-x:auto}
+.param-chart-wrap canvas{width:100%;max-width:100%;height:auto;display:block}
+
+</style>
+</head>
+<body>
+
+<!-- ===================== SCRIPT ===================== -->
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">EPD035 · PCP · Parte II · Grupo 1</div>
+    <h1 class="h1">Planejamento integrado <em>via Pesquisa Operacional</em></h1>
+    <p class="hero-sub">Reformulação rigorosa do plano S&amp;OP da Parte 1 como modelo matemático <em>(MILP)</em>, com 14 famílias de restrições, três cenários de demanda e demanda 100% atendida.</p>
+    <dl class="hero-meta">
+      <div><dt>Solver</dt><dd>GLPK · GUSEK</dd></div>
+      <div><dt>Restrições</dt><dd>14 famílias</dd></div>
+      <div><dt>Cenários</dt><dd>3 integrados</dd></div>
+      <div><dt>Atendimento</dt><dd>100% da demanda</dd></div>
+    </dl>
+  </div>
+</header>
+
+<nav class="tabs">
+  <ul>
+    <li><button class="tab-btn active" data-tab="overview">Visão geral</button></li>
+    <li><button class="tab-btn" data-tab="model">Modelo matemático</button></li>
+    <li><button class="tab-btn" data-tab="comparativo">Comparativo P1 ↔ P2</button></li>
+    <li><button class="tab-btn" data-tab="scenarios">Cenários ótimos</button></li>
+  </ul>
+</nav>
+
+<main>
+
+<section id="overview" class="active">
+  <h2><span class="num">i.</span>A operação</h2>
+  <p class="lead">Uma cadeia em três estágios: dois fornecedores, duas fábricas, dois centros de distribuição e dois clientes. Dois acabados (Y₁, Y₂) feitos de dois componentes (X₁, X₂) na proporção <code>Y = 2·X₁ + 1·X₂</code>. Transporte por trem (M₁, ≤10) ou caminhão (M₂, ≤20). Horizonte de dois períodos.</p>
+
+  <div class="network">
+    <div class="netcol"><span class="netcol-lbl">Fornecedores</span>
+      <div class="node">V₁</div><div class="node">V₂</div></div>
+    <div class="netcol"><span class="netcol-lbl">Fábricas</span>
+      <div class="node">F₁<small>RA + RB</small></div><div class="node">F₂<small>RC + RD</small></div></div>
+    <div class="netcol"><span class="netcol-lbl">Centros de distribuição</span>
+      <div class="node">DC₁</div><div class="node">DC₂</div></div>
+    <div class="netcol"><span class="netcol-lbl">Clientes</span>
+      <div class="node">C₁</div><div class="node">C₂</div></div>
+  </div>
+
+  <h3 class="sec-h">Indicadores-chave <span class="sec-tag">síntese</span></h3>
+  <div class="stats"><article class="stat"><span class="stat-label">Demanda total (MP)</span><span class="stat-val">112 un.</span><span class="stat-sub">cenário mais provável</span></article><article class="stat"><span class="stat-label">Lucro — Mais Provável</span><span class="stat-val">R$ 1.380</span><span class="stat-sub">demanda 100% atendida</span></article><article class="stat"><span class="stat-label">Lucro — Otimista</span><span class="stat-val">R$ 1.590</span><span class="stat-sub">demanda × 1,10</span></article><article class="stat"><span class="stat-label">Lucro — Pessimista</span><span class="stat-val">R$ 1.095</span><span class="stat-sub">demanda × 0,80</span></article></div>
+
+  <h3 class="sec-h">Inconsistências da Parte 1 — corrigidas neste modelo</h3>
+  <div class="grid cols-2">
+    <article class="card">
+      <span class="card-tag">R10a + R10b</span>
+      <h4>Linha sequencial RA → RB</h4>
+      <p>O processo opera em linha: cada peça <strong>passa primeiro por RA e depois por RB</strong> (idem RC→RD em F₂). O modelo impõe <code>pr[RA] = pr[RB]</code>, consumindo tempo nas duas máquinas. A Parte 1 contabilizava custo fixo apenas de uma máquina e não modelava o fluxo sequencial.</p>
+    </article>
+    <article class="card">
+      <span class="card-tag">FO</span>
+      <h4>Custo de estoque</h4>
+      <p>Antes apontava para abas vazias (≈0). Aqui é computado corretamente: Y na fábrica custa R$ 1 por unidade.</p>
+    </article>
+    <article class="card">
+      <span class="card-tag">R11</span>
+      <h4>Lotes de produção</h4>
+      <p>Y₁ múltiplo de 5; X comprado em lotes de 10. Imposto por construção <code>pr = lote · k</code>.</p>
+    </article>
+    <article class="card">
+      <span class="card-tag">R8, R13</span>
+      <h4>Integração entre estágios</h4>
+      <p>Um único plano coerente, sem múltiplos planos para o mesmo CD. Compra ↔ transporte ↔ produção ↔ estoque ↔ entrega encadeados.</p>
+    </article>
+  </div>
+</section>
+
+<section id="model">
+  <h2><span class="num">ii.</span>Modelo matemático</h2>
+  <p class="lead">Formulação em programação linear inteira-mista — uma função objetivo (lucro operacional) e 14 famílias de restrições cobrindo demanda, capacidade, balanço e integralidade.</p>
+
+  <div class="objective">
+    <div class="objective-head">Função objetivo — lucro operacional (cada termo destrinchado)</div>
+    <div class="objective-body">
+      \[ \max\; Z \;=\; R \;-\; \bigl( C_{\text{compra}} + C_{\text{log}} + C_{\text{var}} + C_{\text{fixo}} + C_{\text{extra}} + C_{\text{est}} \bigr) \;-\; M \sum_{t,c,y} n_{t,c,y} \]
+      \[ R \;=\; \sum_{t,c,y} \bigl(\text{dem}_{t,c,y} - n_{t,c,y}\bigr)\cdot p_y \cdot (1 - \tau_{c,y}) \]
+      \[ C_{\text{compra}} \;=\; \sum_{t,x,v} cb^X_{t,x,v}\cdot p^{\text{com}}_{v,x} \;+\; \sum_{t,y,v} cb^Y_{t,y,v}\cdot p^{\text{com}}_{v,y} \]
+      \[ C_{\text{log}} \;=\; \underbrace{\sum_{t,x,v,f,m} tx_{t,x,v,f,m}\cdot c^{\text{log}}_{v,f,m}}_{V\to F\;(X)} + \underbrace{\sum_{t,y,v,f,m} ty^{V\to F}_{t,y,v,f,m}\cdot c^{\text{log}}_{v,f,m}}_{V\to F\;(Y)} + \underbrace{\sum_{t,y,f,d,m} ty_{t,y,f,d,m}\cdot c^{\text{log}}_{f,d,m}}_{F\to CD} + \underbrace{\sum_{t,y,d,c,m} ty_{t,y,d,c,m}\cdot c^{\text{log}}_{d,c,m}}_{CD\to C} \]
+      \[ C_{\text{var}} \;=\; \sum_{t,f,y} pr_{t,f,y,\,r_{\text{in}}(f)}\cdot c^{\text{var}}_{f,y} \qquad C_{\text{fixo}} \;=\; \sum_{t,f,r} a_{t,f,r}\cdot c^{\text{fix}}_{f,r} \]
+      \[ C_{\text{extra}} \;=\; \sum_{t,f,r} ex_{t,f,r}\cdot c^{\text{ex}}_{f,r} \qquad C_{\text{est}} \;=\; \sum_{t,f,x} \text{if}^X\cdot c^{\text{est}}_{f,x} + \sum_{t,f,y} \text{if}^Y\cdot c^{\text{est}}_{f,y} + \sum_{t,d,y} \text{icd}\cdot c^{\text{est}}_{d,y} \]
+    </div>
+    <div class="objective-note">
+      <p><strong>Custo logístico.</strong> Cada termo é o produto de três fatores — <em>fluxo</em> (variável de transporte), <em>rota</em> (par origem-destino) e <em>modal</em> (M₁ trem ou M₂ caminhão). O parâmetro <code>c_log</code> é indexado pela combinação rota×modal, capturando que "trem em V₁→F₂" custa diferente de "caminhão em V₂→F₁".</p>
+
+      <p><strong>Custo variável.</strong> Cobrado uma única vez por unidade da linha (entrada <code>r_in</code> = RA em F₁, RC em F₂), pois a peça depois passa por RB/RD na sequência sem novo custo de matéria.</p>
+
+      <p><strong>Big-M (rede de segurança).</strong> O termo <em>−M·Σn</em> (M = 10⁴) penaliza fortemente qualquer não-entrega. Em cenários atuais a variável <em>n</em> sempre dá 0 (demanda 100% atendida), mas se a demanda exceder a capacidade no futuro, o solver retorna a melhor solução parcial e <em>n &gt; 0</em> indica os gargalos. Variante <code>--no-big-m</code> disponível como validação cruzada (força R1 estrita).</p>
+    </div>
+  </div>
+
+  <h3 class="sec-h">Parâmetros (todos os números fixos viraram parâmetros nomeados) <span class="sec-tag">tabela</span></h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Símbolo</th><th>Descrição</th><th>Valor</th><th class="num">Aba do .xlsx</th></tr></thead>
+    <tbody>
+      <tr><td><code>dem</code></td><td>Demanda por (t, c, y)</td><td>base × fator do cenário</td><td class="num">vendas</td></tr>
+      <tr><td><code>p_y</code></td><td>Preço de venda</td><td>R$ 100 (Y₁), R$ 95 (Y₂)</td><td class="num">precos</td></tr>
+      <tr><td><code>τ</code></td><td>Carga tributária</td><td>5% por cliente×produto</td><td class="num">tax</td></tr>
+      <tr><td><code>ei</code></td><td>Estoque inicial</td><td>10 un.</td><td class="num">ei</td></tr>
+      <tr><td><code>es</code></td><td><strong>Estoque de segurança</strong></td><td><strong>10 un. (parâmetro)</strong></td><td class="num">es</td></tr>
+      <tr><td><code>em</code></td><td><strong>Estoque máximo</strong></td><td><strong>100 un. (parâmetro)</strong></td><td class="num">em</td></tr>
+      <tr><td><code>ef</code></td><td><strong>Estoque final exigido</strong></td><td><strong>10 un. (parâmetro)</strong></td><td class="num">ef</td></tr>
+      <tr><td><code>cap_in/cap_out</code></td><td>Manuseio CD entrada/saída</td><td>50 un./período</td><td class="num">cd_in / cd_out</td></tr>
+      <tr><td><code>cap_modal</code></td><td>Capacidade modal × rota</td><td>10 (trem) / 20 (caminhão)</td><td class="num">modal</td></tr>
+      <tr><td><code>bom</code></td><td>Lista de materiais (BOM)</td><td>Y = 2·X₁ + 1·X₂</td><td class="num">bom</td></tr>
+      <tr><td><code>lote_Y</code></td><td>Lote de produção</td><td>5 (Y₁), 1 (Y₂)</td><td class="num">lote</td></tr>
+      <tr><td><code>lote_X</code></td><td><strong>Lote de compra</strong></td><td><strong>10 un. (parâmetro)</strong></td><td class="num">lote</td></tr>
+      <tr><td><code>temp</code></td><td>Tempo de processo (h/un)</td><td>1 h/un</td><td class="num">temp</td></tr>
+      <tr><td><code>cap_h</code></td><td>Capacidade horária / máquina</td><td>50 h/período</td><td class="num">cap</td></tr>
+      <tr><td><code>ex_cap</code></td><td>Horas extras máximas</td><td>10 h</td><td class="num">ex_cap</td></tr>
+      <tr><td><code>c_log</code></td><td>Custo logístico × rota × modal</td><td>lido por aresta</td><td class="num">c_log</td></tr>
+      <tr><td><code>c_var</code></td><td>Custo variável de produção</td><td>R$ 10–25/un</td><td class="num">c_var</td></tr>
+      <tr><td><code>c_fix</code></td><td>Custo fixo de ativação</td><td>R$ 500/máquina/período</td><td class="num">fix</td></tr>
+      <tr><td><code>c_ex</code></td><td>Custo hora extra</td><td>R$ 100/h</td><td class="num">ex_cust</td></tr>
+      <tr><td><code>p_compra</code></td><td>Preço de compra (V→F)</td><td>lido por par</td><td class="num">compras</td></tr>
+      <tr><td><code>disp</code></td><td>Disponibilidade do fornecedor</td><td>limite superior por cenário</td><td class="num">disp</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="sec-h">Restrições <span class="sec-tag">R1 – R14</span></h3>
+    <div class="restr-list">
+
+    <article class="restr"><div class="restr-head"><span class="restr-id">R1</span><span class="restr-title">Atendimento de demanda</span></div>
+      <div class="restr-math">\[\sum_{d,m} \mathrm{ty}_{t,y,d,c,m} + n_{t,c,y} = \mathrm{dem}_{t,c,y}, \quad \forall\, t,c,y\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">O que chega aos clientes (vindo de qualquer CD por qualquer modal) somado a eventual nao-entrega <code>n</code> iguala a demanda. O Big-M (M=10^4) na FO penaliza n duramente, garantindo atendimento 100%. Nos 3 cenarios, n=0.</p>
+    </article>
+
+    <article class="restr"><div class="restr-head"><span class="restr-id">R2</span><span class="restr-title">Capacidade do modal por rota (X e Y somam)</span></div>
+      <div class="restr-math">\[\sum_{x} \mathrm{tx}_{t,x,v,f,m} + \sum_{y} \mathrm{ty}^{V\to F}_{t,y,v,f,m} \;\le\; \mathrm{cap}_{v,f,m}\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">O modal m na rota v&rarr;f tem capacidade fixa (10 un. trem M1, 20 un. caminhao M2). Componentes e acabados <strong>somam</strong> no mesmo veiculo. Analogas para F&rarr;CD e CD&rarr;C.</p>
+    </article>
+
+    <article class="restr"><div class="restr-head"><span class="restr-id">R3</span><span class="restr-title">Manuseio de entrada no CD</span></div>
+      <div class="restr-math">\[\sum_{y,f,m} \mathrm{ty}_{t,y,f,d,m} \;\le\; \mathrm{cap}^{\text{in}}_{d,t}\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">Cada CD recebe ate 50 un./periodo. Evita "empilhar" produto alem da taxa de movimentacao operacional.</p>
+    </article>
+
+    <article class="restr"><div class="restr-head"><span class="restr-id">R4</span><span class="restr-title">Manuseio de saida do CD</span></div>
+      <div class="restr-math">\[\sum_{y,c,m} \mathrm{ty}_{t,y,d,c,m} \;\le\; \mathrm{cap}^{\text{out}}_{d,t}\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">Saida diaria do CD ao cliente e limitada a 50 un./periodo.</p>
+    </article>
+
+    <article class="restr"><div class="restr-head"><span class="restr-id">R5</span><span class="restr-title">Estoque de seguranca (minimo)</span></div>
+      <div class="restr-math">\[\mathrm{if}^X_{t,f,x},\; \mathrm{if}^Y_{t,f,y},\; \mathrm{icd}_{t,d,y} \;\ge\; \mathrm{es}_{loc,p,t}\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">Estoque minimo (<code>es</code> = 10 un.) em cada local-produto-periodo. Cobre incertezas de demanda e atrasos logisticos. <strong>Parametrizavel</strong>.</p>
+    </article>
+
+    <article class="restr"><div class="restr-head"><span class="restr-id">R6</span><span class="restr-title">Estoque maximo</span></div>
+      <div class="restr-math">\[\mathrm{if}^X_{t,f,x},\; \mathrm{if}^Y_{t,f,y},\; \mathrm{icd}_{t,d,y} \;\le\; \mathrm{em}_{loc,p,t}\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">Limite fisico de armazenagem (<code>em</code> = 100 un.). Evita capital empatado e estouro de espaco.</p>
+    </article>
+
+    <article class="restr"><div class="restr-head"><span class="restr-id">R7</span><span class="restr-title">Estoque final exigido no horizonte</span></div>
+      <div class="restr-math">\[\mathrm{if}_{T,loc,p},\; \mathrm{icd}_{T,d,y} \;\ge\; \mathrm{ef}_{loc,p}\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">No ultimo periodo T, estoque &ge; <code>ef</code> (= 10 un.). Encerra o horizonte com o mesmo nivel minimo do inicio.</p>
+    </article>
+
+    <article class="restr"><div class="restr-head"><span class="restr-id">R8</span><span class="restr-title">Balanco de estoque (conservacao)</span></div>
+      <div class="restr-math">\[\mathrm{EF}_{t} = \mathrm{EI}_{t-1} + \mathrm{entradas}_{t} - \mathrm{saidas}_{t}\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">Conservacao de massa: para cada local-produto, estoque final = estoque anterior + entradas (transporte/producao) &minus; saidas (consumo/despacho). O consumo de componentes vem da R_BOM.</p>
+    </article>
+
+    <article class="restr" style="border-left:3px solid #ff7a45;padding-left:14px"><div class="restr-head"><span class="restr-id">R_BOM</span><span class="restr-title">Lista de materiais (consumo de componentes) &mdash; explicita</span></div>
+      <div class="restr-math">\[\mathrm{consumo}_{t,f,x} \;=\; \sum_{y}\, pr_{t,f,y,\,r_{\text{in}}(f)}\cdot \mathrm{bom}_{y,x}\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">Cada unidade de Y consome <code>bom[y,x]</code> unidades de X. Y1 = 2&middot;X1 + 1&middot;X2; Y2 = 1&middot;X1 + 2&middot;X2. Cobrado uma unica vez na entrada da linha sequencial (<code>r_in</code> = RA em F1, RC em F2). Alimenta o termo "-saidas" da R8 para X.</p>
+    </article>
+
+    <article class="restr"><div class="restr-head"><span class="restr-id">R9</span><span class="restr-title">Capacidade horaria da maquina</span></div>
+      <div class="restr-math">\[\sum_{y} pr_{t,f,y,r}\cdot \mathrm{temp}_{y,r} \;\le\; (\mathrm{cap}^h - \mathrm{manut})\cdot \mathrm{eff}\cdot a_{t,f,r} + ex_{t,f,r}\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">Horas usadas &le; capacidade horaria (50 h/periodo) descontada da manutencao e multiplicada pela eficiencia, condicionada a ativacao <code>a</code>. Horas extras (&le; 10 h) podem ser contratadas com sobrecusto.</p>
+    </article>
+
+    <article class="restr" style="border-left:3px solid #ff7a45;padding-left:14px"><div class="restr-head"><span class="restr-id">R10a</span><span class="restr-title">Ativacao conjunta da linha de producao</span></div>
+      <div class="restr-math">\[a_{t,F_1,RA} = a_{t,F_1,RB} = \mathrm{aLine}_{t,F_1};\; a_{t,F_2,RC} = a_{t,F_2,RD} = \mathrm{aLine}_{t,F_2}\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">Ativar a linha exige as <strong>duas</strong> maquinas juntas (custo fixo de ambas). Corrige a violacao da Parte 1, que pagava custo fixo de apenas uma maquina.</p>
+    </article>
+
+    <article class="restr" style="border-left:3px solid #ff7a45;padding-left:14px"><div class="restr-head"><span class="restr-id">R10b</span><span class="restr-title">Fluxo sequencial RA&rarr;RB / RC&rarr;RD</span></div>
+      <div class="restr-math">\[pr_{t,F_1,y,RA} = pr_{t,F_1,y,RB};\; pr_{t,F_2,y,RC} = pr_{t,F_2,y,RD}\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">A peca que sai da primeira maquina e a mesma que entra na segunda &mdash; fluxo <strong>serial</strong>, nao paralelo. Capacidade efetiva = min(cap_RA, cap_RB); cada peca consome tempo nas duas maquinas (R9 individual).</p>
+    </article>
+
+    <article class="restr"><div class="restr-head"><span class="restr-id">R11</span><span class="restr-title">Lotes inteiros de producao e compra</span></div>
+      <div class="restr-math">\[\mathrm{pr}_{t,f,y,r} = \mathrm{lote}^Y_{f,y}\cdot k_1; \quad \mathrm{cb}^X_{t,x,v} = \mathrm{lote}^X_{v,x}\cdot k_2;\quad k_1,k_2 \in \mathbb{Z}_+\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">Producao de Y1 em lotes de 5 un.; Y2 unitario. Compra de X em lotes de 10 un. Corrige violacao da Parte 1 (Y1 = 11 no otimista).</p>
+    </article>
+
+    <article class="restr"><div class="restr-head"><span class="restr-id">R12</span><span class="restr-title">Disponibilidade do fornecedor</span></div>
+      <div class="restr-math">\[\mathrm{cb}^X_{t,x,v} \le \mathrm{disp}_{t,x,v}; \quad \mathrm{cb}^Y_{t,y,v} \le \mathrm{disp}_{t,y,v}\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">Compra &le; disponibilidade contratual do fornecedor (limite superior por periodo-produto-fornecedor).</p>
+    </article>
+
+    <article class="restr"><div class="restr-head"><span class="restr-id">R13</span><span class="restr-title">Encadeamento compra &harr; transporte</span></div>
+      <div class="restr-math">\[\mathrm{cb}^X_{t,x,v} = \sum_{f,m} \mathrm{tx}_{t,x,v,f,m}; \quad \mathrm{cb}^Y_{t,y,v} = \sum_{f,m} \mathrm{ty}^{V\to F}_{t,y,v,f,m}\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">Tudo que e comprado de v e transportado de v para alguma fabrica &mdash; sem "compra fantasma" nem transporte sem origem. Liga G1 (compras) com G3 (logistica).</p>
+    </article>
+
+    <article class="restr"><div class="restr-head"><span class="restr-id">R14</span><span class="restr-title">Dominio: nao-negatividade e integralidade</span></div>
+      <div class="restr-math">\[\mathrm{tx},\mathrm{ty},\mathrm{cb},\mathrm{pr},n \in \mathbb{Z}_+; \quad a,\mathrm{aLine}\in\{0,1\}; \quad ex,\mathrm{if},\mathrm{icd}\in\mathbb{R}_+\]</div>
+      <p style="margin:10px 0 0;color:#c8c6be;font-size:14px">Quantidades fisicas inteiras; ativacoes binarias; horas extras e estoques continuos nao-negativos.</p>
+    </article>
+
+  </div>
+
+  <h3 class="sec-h">Implementacao <span class="sec-tag">GMPL &middot; GLPK &middot; GUSEK</span></h3>
+  <div class="grid cols-2">
+    <article class="card">
+      <span class="card-tag">sop_milp.mod</span>
+      <h4>Modelo em GNU MathProg</h4>
+      <p>Arquivo declarativo com conjuntos, parâmetros, variáveis, função objetivo e as 14 famílias de restrições. <strong>Genérico</strong> — independe dos números do cenário. Cada restrição R1–R14 aparece como <code>s.t. NomeR{índices}: equação;</code>.</p>
+    </article>
+    <article class="card">
+      <span class="card-tag">sop_milp.dat</span>
+      <h4>Dados de UM cenário</h4>
+      <p>Arquivo separado com os valores específicos: <code>set T := 1 2;</code>, <code>param preco := ...</code>, <code>param dem_base := ...</code> etc. Trocar de cenário = trocar o <code>.dat</code>; o <code>.mod</code> fica intacto. Separação canônica do GMPL.</p>
+    </article>
+    <article class="card">
+      <span class="card-tag">GUSEK (IDE) + GLPK</span>
+      <h4>Como rodar</h4>
+      <p>Abrir <code>sop_milp.mod</code> no GUSEK, configurar <em>External Data File → sop_milp.dat</em>, e clicar <em>Tools → Go</em> (F5). Por linha de comando: <code>glpsol -m sop_milp.mod -d sop_milp.dat -o resultado.txt</code>. Tempo de resolução: <strong>&lt; 10 s</strong> por cenário.</p>
+    </article>
+    <article class="card">
+      <span class="card-tag">Big-M (M = 10⁴)</span>
+      <h4>Rede de segurança</h4>
+      <p>A FO inclui o termo <em>−M·Σn</em> como rede de segurança: se a demanda exceder a capacidade, o solver retorna solução parcial e <em>n &gt; 0</em> indica os gargalos. Nos 3 cenários estudados, <code>n = 0</code> (demanda integralmente atendida). Variante sem Big-M disponível: <code>USAR_BIG_M := 0</code> no <code>.dat</code>.</p>
+    </article>
+  </div>
+</section>
+
+<section id="comparativo"><h2><span class="num">iii.</span>Comparativo Parte 1 ↔ Parte 2</h2><p class="lead">Mesma operação, mesmas demandas, duas abordagens. A Parte 1 partiu de heurística manual em planilhas; a Parte 2 resolve o mesmo problema como <em>MILP</em>. Onde a Parte 1 reporta lucro maior, sempre há uma restrição violada compensando o custo — o que esta seção documenta linha a linha.</p><h3 class="sec-h">Cenário Mais Provável <span class="sec-tag">DRE lado a lado</span></h3><div class="tbl-wrap"><table><thead><tr><th>Linha</th><th class="num">Parte 1 (G1)</th><th class="num">Parte 2 (MILP)</th><th class="num">Δ</th></tr></thead><tbody><tr><td>Receita líquida</td><td class="num">R$ 10.640</td><td class="num">R$ 10.640</td><td class="num">+ 0</td></tr><tr><td>(−) Custo de compras</td><td class="num">R$ 330</td><td class="num">R$ 770</td><td class="num">+ 440</td></tr><tr><td>(−) Custo logístico</td><td class="num">R$ 2.580</td><td class="num">R$ 3.510</td><td class="num">+ 930</td></tr><tr><td>(−) Custo variável de produção</td><td class="num">R$ 2.150</td><td class="num">R$ 1.900</td><td class="num">− 250</td></tr><tr><td>(−) Custo fixo de produção</td><td class="num">R$ 1.500</td><td class="num">R$ 3.000</td><td class="num">+ 1.500</td></tr><tr><td>(−) Custo de capacidade extra</td><td class="num">R$ 0</td><td class="num">R$ 0</td><td class="num">+ 0</td></tr><tr><td>(−) Custo de estoque</td><td class="num">R$ 84</td><td class="num">R$ 80</td><td class="num">− 4</td></tr><tr class="dre-total"><td>(=) Lucro operacional</td><td class="num">R$ 3.996</td><td class="num">R$ 1.380</td><td class="num">− 2.488</td></tr></tbody></table></div><h3 class="sec-h">Restrições violadas pela Parte 1 neste cenário</h3><div class="grid cols-2"><article class="card"><span class="card-tag">R10</span><p style="margin:6px 0 0">Custo fixo R$ 1.500 indica apenas 3 ativações — a linha exige pares (RA+RB e RC+RD)</p></article></div><h3 class="sec-h">Cenário Otimista <span class="sec-tag">DRE lado a lado</span></h3><div class="tbl-wrap"><table><thead><tr><th>Linha</th><th class="num">Parte 1 (G1)</th><th class="num">Parte 2 (MILP)</th><th class="num">Δ</th></tr></thead><tbody><tr><td>Receita líquida</td><td class="num">R$ 11.970</td><td class="num">R$ 11.780</td><td class="num">− 190</td></tr><tr><td>(−) Custo de compras</td><td class="num">R$ 1.090</td><td class="num">R$ 1.340</td><td class="num">+ 250</td></tr><tr><td>(−) Custo logístico</td><td class="num">R$ 2.800</td><td class="num">R$ 3.870</td><td class="num">+ 1.070</td></tr><tr><td>(−) Custo variável de produção</td><td class="num">R$ 2.050</td><td class="num">R$ 1.900</td><td class="num">− 150</td></tr><tr><td>(−) Custo fixo de produção</td><td class="num">R$ 1.500</td><td class="num">R$ 3.000</td><td class="num">+ 1.500</td></tr><tr><td>(−) Custo de capacidade extra</td><td class="num">R$ 0</td><td class="num">R$ 0</td><td class="num">+ 0</td></tr><tr><td>(−) Custo de estoque</td><td class="num">R$ 86</td><td class="num">R$ 80</td><td class="num">− 6</td></tr><tr class="dre-total"><td>(=) Lucro operacional</td><td class="num">R$ 4.444</td><td class="num">R$ 1.590</td><td class="num">− 2.764</td></tr></tbody></table></div><h3 class="sec-h">Restrições violadas pela Parte 1 neste cenário</h3><div class="grid cols-2"><article class="card"><span class="card-tag">R11</span><p style="margin:6px 0 0">Y1 = 11 unidades em F1/RA/P1 viola o lote múltiplo de 5</p></article><article class="card"><span class="card-tag">R10</span><p style="margin:6px 0 0">Custo fixo R$ 1.500 viola produção em linha (pares)</p></article><article class="card"><span class="card-tag">R5</span><p style="margin:6px 0 0">Estoque final DC2/Y2/P2 = 0 (abaixo do mínimo de 10)</p></article></div><h3 class="sec-h">Cenário Pessimista <span class="sec-tag">DRE lado a lado</span></h3><div class="tbl-wrap"><table><thead><tr><th>Linha</th><th class="num">Parte 1 (G1)</th><th class="num">Parte 2 (MILP)</th><th class="num">Δ</th></tr></thead><tbody><tr><td>Receita líquida</td><td class="num">R$ 8.930</td><td class="num">R$ 8.455</td><td class="num">− 475</td></tr><tr><td>(−) Custo de compras</td><td class="num">R$ 13</td><td class="num">R$ 1.310</td><td class="num">+ 1.297</td></tr><tr><td>(−) Custo logístico</td><td class="num">R$ 2.080</td><td class="num">R$ 2.470</td><td class="num">+ 390</td></tr><tr><td>(−) Custo variável de produção</td><td class="num">R$ 1.400</td><td class="num">R$ 1.500</td><td class="num">+ 100</td></tr><tr><td>(−) Custo fixo de produção</td><td class="num">R$ 1.500</td><td class="num">R$ 2.000</td><td class="num">+ 500</td></tr><tr><td>(−) Custo de capacidade extra</td><td class="num">R$ 0</td><td class="num">R$ 0</td><td class="num">+ 0</td></tr><tr><td>(−) Custo de estoque</td><td class="num">R$ 82</td><td class="num">R$ 80</td><td class="num">− 2</td></tr><tr class="dre-total"><td>(=) Lucro operacional</td><td class="num">R$ 3.855</td><td class="num">R$ 1.095</td><td class="num">− 2.400</td></tr></tbody></table></div><h3 class="sec-h">Restrições violadas pela Parte 1 neste cenário</h3><div class="grid cols-2"><article class="card"><span class="card-tag">R10</span><p style="margin:6px 0 0">Custo fixo R$ 1.500 viola produção em linha (pares)</p></article></div><h3 class="sec-h">Interpretação</h3><p>O lucro maior reportado pelo Grupo 1 é <em>aparente</em>: o custo fixo de R$ 1.500 corresponde a três máquinas isoladas (P1: RA + RC; P2: RC), mas a <strong>R10 exige ativação em pares</strong> (RA com RB, RC com RD) — o valor correto é de R$ 2.000 a R$ 3.000 conforme o cenário. Somado às demais violações (lote Y1=11 e estoque DC2/Y2/P2 = 0 no otimista), as planilhas da Parte 1 produzem números atrativos mas <strong>infactíveis na operação real</strong>. A Parte 2 garante factibilidade por construção.</p></section>
+
+<section id="scenarios">
+  <h2><span class="num">iv.</span>Resultados ótimos</h2>
+  <p class="lead">O mesmo modelo resolvido para três níveis de demanda. Demanda 100% atendida em todos os casos; lotes e restrições da linha respeitados por construção.</p>
+
+  <div class="sctabs">
+    <button class="sc-btn active" data-k="mais_provavel">Mais provável · ×1,00</button>
+    <button class="sc-btn" data-k="otimista">Otimista · ×1,10</button>
+    <button class="sc-btn" data-k="pessimista">Pessimista · ×0,80</button>
+  </div>
+
+  <div class="scen" data-key="mais_provavel"><div class="stats"><article class="stat"><span class="stat-label">Receita líquida</span><span class="stat-val">R$ 10.640</span></article><article class="stat"><span class="stat-label">Custos totais</span><span class="stat-val">R$ 8.832</span></article><article class="stat"><span class="stat-label">Lucro operacional</span><span class="stat-val">R$ 1.380</span><span class="stat-sub">após todos os custos</span></article><article class="stat"><span class="stat-label">Demanda atendida</span><span class="stat-val">112/112</span><span class="stat-sub">100% atendida</span></article></div><h3 class="sec-h">Plano de produção <span class="sec-tag">G2</span></h3><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Fábrica</th><th>Y</th><th>Máquina</th><th>Quantidade</th></tr></thead><tbody><tr><td class="num">1</td><td>F1</td><td>Y1</td><td>RA</td><td class="num">20</td></tr><tr><td class="num">1</td><td>F1</td><td>Y2</td><td>RB</td><td class="num">35</td></tr><tr><td class="num">1</td><td>F2</td><td>Y1</td><td>RC</td><td class="num">45</td></tr><tr><td class="num">1</td><td>F2</td><td>Y1</td><td>RD</td><td class="num">15</td></tr></tbody></table></div><h3 class="sec-h">Plano de compras <span class="sec-tag">G1</span></h3><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Item</th><th>Fornecedor</th><th>Qtd</th></tr></thead><tbody><tr><td class="num">1</td><td>Comp. X1</td><td>V1</td><td class="num">40</td></tr><tr><td class="num">1</td><td>Comp. X1</td><td>V2</td><td class="num">10</td></tr><tr><td class="num">1</td><td>Acab. Y1</td><td>V1</td><td class="num">7</td></tr><tr><td class="num">1</td><td>Acab. Y2</td><td>V1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Acab. Y1</td><td>V1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Acab. Y2</td><td>V1</td><td class="num">10</td></tr></tbody></table></div><h3 class="sec-h">Plano de transporte <span class="sec-tag">G1 + G3</span></h3><details open class="acc"><summary>Acabados — Fábrica → CD</summary><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Y</th><th>F</th><th>CD</th><th>Modal</th><th>Qtd</th></tr></thead><tbody><tr><td class="num">1</td><td>Y1</td><td>F1</td><td>DC1</td><td>M2</td><td class="num">20</td></tr><tr><td class="num">1</td><td>Y1</td><td>F2</td><td>DC1</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>Y1</td><td>F2</td><td>DC1</td><td>M2</td><td class="num">11</td></tr><tr><td class="num">1</td><td>Y1</td><td>F2</td><td>DC2</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>Y1</td><td>F2</td><td>DC2</td><td>M2</td><td class="num">14</td></tr><tr><td class="num">1</td><td>Y2</td><td>F1</td><td>DC1</td><td>M1</td><td class="num">9</td></tr><tr><td class="num">1</td><td>Y2</td><td>F1</td><td>DC2</td><td>M1</td><td class="num">6</td></tr><tr><td class="num">1</td><td>Y2</td><td>F1</td><td>DC2</td><td>M2</td><td class="num">20</td></tr><tr><td class="num">2</td><td>Y1</td><td>F2</td><td>DC1</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Y1</td><td>F2</td><td>DC2</td><td>M2</td><td class="num">12</td></tr><tr><td class="num">2</td><td>Y2</td><td>F1</td><td>DC1</td><td>M2</td><td class="num">10</td></tr></tbody></table></div></details><details open class="acc"><summary>Acabados — CD → Cliente</summary><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Y</th><th>CD</th><th>C</th><th>Modal</th><th>Qtd</th></tr></thead><tbody><tr><td class="num">1</td><td>Y1</td><td>DC1</td><td>C1</td><td>M2</td><td class="num">6</td></tr><tr><td class="num">1</td><td>Y1</td><td>DC1</td><td>C2</td><td>M1</td><td class="num">7</td></tr><tr><td class="num">1</td><td>Y1</td><td>DC2</td><td>C1</td><td>M2</td><td class="num">3</td></tr><tr><td class="num">1</td><td>Y1</td><td>DC2</td><td>C2</td><td>M2</td><td class="num">16</td></tr><tr><td class="num">1</td><td>Y2</td><td>DC2</td><td>C1</td><td>M2</td><td class="num">7</td></tr><tr><td class="num">1</td><td>Y2</td><td>DC2</td><td>C2</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>Y2</td><td>DC2</td><td>C2</td><td>M2</td><td class="num">4</td></tr><tr><td class="num">2</td><td>Y1</td><td>DC1</td><td>C1</td><td>M2</td><td class="num">15</td></tr><tr><td class="num">2</td><td>Y1</td><td>DC1</td><td>C2</td><td>M2</td><td class="num">18</td></tr><tr><td class="num">2</td><td>Y1</td><td>DC2</td><td>C1</td><td>M2</td><td class="num">3</td></tr><tr><td class="num">2</td><td>Y1</td><td>DC2</td><td>C2</td><td>M2</td><td class="num">9</td></tr><tr><td class="num">2</td><td>Y2</td><td>DC1</td><td>C1</td><td>M2</td><td class="num">5</td></tr><tr><td class="num">2</td><td>Y2</td><td>DC1</td><td>C2</td><td>M1</td><td class="num">9</td></tr></tbody></table></div></details><details class="acc"><summary>Componentes / Y comprado — Fornecedor → Fábrica</summary><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Item</th><th>V</th><th>F</th><th>Modal</th><th>Qtd</th></tr></thead><tbody><tr><td class="num">1</td><td>X X1</td><td>V1</td><td>F1</td><td>M1</td><td class="num">5</td></tr><tr><td class="num">1</td><td>X X1</td><td>V1</td><td>F1</td><td>M2</td><td class="num">15</td></tr><tr><td class="num">1</td><td>X X1</td><td>V1</td><td>F2</td><td>M2</td><td class="num">20</td></tr><tr><td class="num">1</td><td>X X1</td><td>V2</td><td>F2</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>Y Y1</td><td>V1</td><td>F1</td><td>M1</td><td class="num">5</td></tr><tr><td class="num">1</td><td>Y Y1</td><td>V1</td><td>F2</td><td>M1</td><td class="num">2</td></tr><tr><td class="num">1</td><td>Y Y2</td><td>V1</td><td>F1</td><td>M2</td><td class="num">5</td></tr><tr><td class="num">1</td><td>Y Y2</td><td>V1</td><td>F2</td><td>M1</td><td class="num">5</td></tr><tr><td class="num">2</td><td>Y Y1</td><td>V1</td><td>F2</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Y Y2</td><td>V1</td><td>F1</td><td>M2</td><td class="num">10</td></tr></tbody></table></div></details><h3 class="sec-h">Uso dos modais <span class="sec-tag">G3</span></h3><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Origem</th><th>Destino</th><th>Modal</th><th>Qtd</th><th>Cap.</th><th>Uso</th></tr></thead><tbody><tr><td class="num">1</td><td>DC1</td><td>C1</td><td>M2</td><td class="num">6</td><td class="num">20</td><td><span class="bar"><i style="width:30%"></i></span><span class="bar-val">30%</span></td></tr><tr><td class="num">1</td><td>DC1</td><td>C2</td><td>M1</td><td class="num">7</td><td class="num">10</td><td><span class="bar"><i style="width:70%"></i></span><span class="bar-val">70%</span></td></tr><tr><td class="num">1</td><td>DC2</td><td>C1</td><td>M2</td><td class="num">10</td><td class="num">20</td><td><span class="bar"><i style="width:50%"></i></span><span class="bar-val">50%</span></td></tr><tr><td class="num">1</td><td>DC2</td><td>C2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>DC2</td><td>C2</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>F1</td><td>DC1</td><td>M1</td><td class="num">9</td><td class="num">10</td><td><span class="bar bar--warn"><i style="width:90%"></i></span><span class="bar-val">90%</span></td></tr><tr><td class="num">1</td><td>F1</td><td>DC1</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>F1</td><td>DC2</td><td>M1</td><td class="num">6</td><td class="num">10</td><td><span class="bar"><i style="width:60%"></i></span><span class="bar-val">60%</span></td></tr><tr><td class="num">1</td><td>F1</td><td>DC2</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>F2</td><td>DC1</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>F2</td><td>DC1</td><td>M2</td><td class="num">11</td><td class="num">20</td><td><span class="bar"><i style="width:55%"></i></span><span class="bar-val">55%</span></td></tr><tr><td class="num">1</td><td>F2</td><td>DC2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>F2</td><td>DC2</td><td>M2</td><td class="num">14</td><td class="num">20</td><td><span class="bar"><i style="width:70%"></i></span><span class="bar-val">70%</span></td></tr><tr><td class="num">1</td><td>V1</td><td>F1</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>V1</td><td>F1</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>V1</td><td>F2</td><td>M1</td><td class="num">7</td><td class="num">10</td><td><span class="bar"><i style="width:70%"></i></span><span class="bar-val">70%</span></td></tr><tr><td class="num">1</td><td>V1</td><td>F2</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>V2</td><td>F2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">2</td><td>DC1</td><td>C1</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">2</td><td>DC1</td><td>C2</td><td>M1</td><td class="num">9</td><td class="num">10</td><td><span class="bar bar--warn"><i style="width:90%"></i></span><span class="bar-val">90%</span></td></tr><tr><td class="num">2</td><td>DC1</td><td>C2</td><td>M2</td><td class="num">18</td><td class="num">20</td><td><span class="bar bar--warn"><i style="width:90%"></i></span><span class="bar-val">90%</span></td></tr><tr><td class="num">2</td><td>DC2</td><td>C1</td><td>M2</td><td class="num">3</td><td class="num">20</td><td><span class="bar"><i style="width:15%"></i></span><span class="bar-val">15%</span></td></tr><tr><td class="num">2</td><td>DC2</td><td>C2</td><td>M2</td><td class="num">9</td><td class="num">20</td><td><span class="bar"><i style="width:45%"></i></span><span class="bar-val">45%</span></td></tr><tr><td class="num">2</td><td>F1</td><td>DC1</td><td>M2</td><td class="num">10</td><td class="num">20</td><td><span class="bar"><i style="width:50%"></i></span><span class="bar-val">50%</span></td></tr><tr><td class="num">2</td><td>F2</td><td>DC1</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">2</td><td>F2</td><td>DC2</td><td>M2</td><td class="num">12</td><td class="num">20</td><td><span class="bar"><i style="width:60%"></i></span><span class="bar-val">60%</span></td></tr><tr><td class="num">2</td><td>V1</td><td>F1</td><td>M2</td><td class="num">10</td><td class="num">20</td><td><span class="bar"><i style="width:50%"></i></span><span class="bar-val">50%</span></td></tr><tr><td class="num">2</td><td>V1</td><td>F2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr></tbody></table></div><h3 class="sec-h">Estoques <span class="sec-tag">G3</span></h3><details open class="acc"><summary>Estoque nas fábricas (componentes + acabados)</summary><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Fábrica</th><th>Item</th><th>Estoque final</th></tr></thead><tbody><tr><td class="num">1</td><td>F1</td><td>Comp. X1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>F1</td><td>Comp. X2</td><td class="num">45</td></tr><tr><td class="num">1</td><td>F2</td><td>Comp. X1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>F2</td><td>Comp. X2</td><td class="num">40</td></tr><tr><td class="num">2</td><td>F1</td><td>Comp. X1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F1</td><td>Comp. X2</td><td class="num">45</td></tr><tr><td class="num">2</td><td>F2</td><td>Comp. X1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F2</td><td>Comp. X2</td><td class="num">40</td></tr><tr><td class="num">1</td><td>F1</td><td>Acab. Y1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>F1</td><td>Acab. Y2</td><td class="num">10</td></tr><tr><td class="num">1</td><td>F2</td><td>Acab. Y1</td><td class="num">22</td></tr><tr><td class="num">1</td><td>F2</td><td>Acab. Y2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F1</td><td>Acab. Y1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F1</td><td>Acab. Y2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F2</td><td>Acab. Y1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F2</td><td>Acab. Y2</td><td class="num">10</td></tr></tbody></table></div></details><details class="acc"><summary>Estoque nos CDs</summary><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>CD</th><th>Y</th><th>Estoque final</th></tr></thead><tbody><tr><td class="num">1</td><td>DC1</td><td>Y1</td><td class="num">33</td></tr><tr><td class="num">1</td><td>DC1</td><td>Y2</td><td class="num">14</td></tr><tr><td class="num">1</td><td>DC2</td><td>Y1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>DC2</td><td>Y2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>DC1</td><td>Y1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>DC1</td><td>Y2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>DC2</td><td>Y1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>DC2</td><td>Y2</td><td class="num">10</td></tr></tbody></table></div></details><h3 class="sec-h">Manuseio dos CDs <span class="sec-tag">G4</span></h3><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>CD</th><th>Entrada (≤50)</th><th>Saída (≤50)</th></tr></thead><tbody><tr><td class="num">1</td><td>DC1</td><td>50 (100%)</td><td>13 (26%)</td></tr><tr><td class="num">1</td><td>DC2</td><td>50 (100%)</td><td>40 (80%)</td></tr><tr><td class="num">2</td><td>DC1</td><td>20 (40%)</td><td>47 (94%)</td></tr><tr><td class="num">2</td><td>DC2</td><td>12 (24%)</td><td>12 (24%)</td></tr></tbody></table></div><h3 class="sec-h">Demonstração de resultado <span class="sec-tag">G5</span></h3><div class="tbl-wrap"><table class="dre"><tbody><tr><td>(+) Receita líquida</td><td class="num">R$ 10.640</td></tr><tr><td>(−) Custo de compras</td><td class="num">R$ 1.730</td></tr><tr><td>(−) Custo logístico</td><td class="num">R$ 3.310</td></tr><tr><td>(−) Custo variável de produção</td><td class="num">R$ 1.700</td></tr><tr><td>(−) Custo fixo de produção</td><td class="num">R$ 2.000</td></tr><tr><td>(−) Custo de capacidade extra</td><td class="num">R$ 0</td></tr><tr><td>(−) Custo de estoque</td><td class="num">R$ 92</td></tr><tr class="dre-total"><td>(=) LUCRO OPERACIONAL</td><td class="num">R$ 1.380</td></tr></tbody></table></div></div><div class="scen" data-key="otimista"><div class="stats"><article class="stat"><span class="stat-label">Receita líquida</span><span class="stat-val">R$ 11.780</span></article><article class="stat"><span class="stat-label">Custos totais</span><span class="stat-val">R$ 10.100</span></article><article class="stat"><span class="stat-label">Lucro operacional</span><span class="stat-val">R$ 1.590</span><span class="stat-sub">após todos os custos</span></article><article class="stat"><span class="stat-label">Demanda atendida</span><span class="stat-val">124/124</span><span class="stat-sub">100% atendida</span></article></div><h3 class="sec-h">Plano de produção <span class="sec-tag">G2</span></h3><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Fábrica</th><th>Y</th><th>Máquina</th><th>Quantidade</th></tr></thead><tbody><tr><td class="num">1</td><td>F1</td><td>Y1</td><td>RB</td><td class="num">5</td></tr><tr><td class="num">1</td><td>F1</td><td>Y2</td><td>RA</td><td class="num">50</td></tr><tr><td class="num">1</td><td>F2</td><td>Y1</td><td>RD</td><td class="num">45</td></tr><tr><td class="num">1</td><td>F2</td><td>Y2</td><td>RD</td><td class="num">5</td></tr><tr><td class="num">2</td><td>F2</td><td>Y1</td><td>RC</td><td class="num">35</td></tr></tbody></table></div><h3 class="sec-h">Plano de compras <span class="sec-tag">G1</span></h3><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Item</th><th>Fornecedor</th><th>Qtd</th></tr></thead><tbody><tr><td class="num">1</td><td>Comp. X1</td><td>V1</td><td class="num">50</td></tr><tr><td class="num">1</td><td>Comp. X1</td><td>V2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Comp. X1</td><td>V1</td><td class="num">30</td></tr><tr><td class="num">2</td><td>Comp. X1</td><td>V2</td><td class="num">10</td></tr><tr><td class="num">1</td><td>Acab. Y1</td><td>V1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Acab. Y1</td><td>V1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Acab. Y2</td><td>V1</td><td class="num">4</td></tr></tbody></table></div><h3 class="sec-h">Plano de transporte <span class="sec-tag">G1 + G3</span></h3><details open class="acc"><summary>Acabados — Fábrica → CD</summary><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Y</th><th>F</th><th>CD</th><th>Modal</th><th>Qtd</th></tr></thead><tbody><tr><td class="num">1</td><td>Y1</td><td>F1</td><td>DC2</td><td>M2</td><td class="num">10</td></tr><tr><td class="num">1</td><td>Y1</td><td>F2</td><td>DC1</td><td>M2</td><td class="num">20</td></tr><tr><td class="num">1</td><td>Y1</td><td>F2</td><td>DC2</td><td>M2</td><td class="num">20</td></tr><tr><td class="num">1</td><td>Y2</td><td>F1</td><td>DC1</td><td>M1</td><td class="num">7</td></tr><tr><td class="num">1</td><td>Y2</td><td>F1</td><td>DC1</td><td>M2</td><td class="num">20</td></tr><tr><td class="num">1</td><td>Y2</td><td>F1</td><td>DC2</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>Y2</td><td>F1</td><td>DC2</td><td>M2</td><td class="num">8</td></tr><tr><td class="num">2</td><td>Y1</td><td>F1</td><td>DC2</td><td>M2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Y1</td><td>F2</td><td>DC1</td><td>M1</td><td class="num">9</td></tr><tr><td class="num">2</td><td>Y1</td><td>F2</td><td>DC2</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Y1</td><td>F2</td><td>DC2</td><td>M2</td><td class="num">16</td></tr><tr><td class="num">2</td><td>Y2</td><td>F1</td><td>DC2</td><td>M1</td><td class="num">4</td></tr></tbody></table></div></details><details open class="acc"><summary>Acabados — CD → Cliente</summary><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Y</th><th>CD</th><th>C</th><th>Modal</th><th>Qtd</th></tr></thead><tbody><tr><td class="num">1</td><td>Y1</td><td>DC1</td><td>C1</td><td>M2</td><td class="num">10</td></tr><tr><td class="num">1</td><td>Y1</td><td>DC2</td><td>C2</td><td>M1</td><td class="num">5</td></tr><tr><td class="num">1</td><td>Y1</td><td>DC2</td><td>C2</td><td>M2</td><td class="num">20</td></tr><tr><td class="num">1</td><td>Y2</td><td>DC1</td><td>C2</td><td>M2</td><td class="num">10</td></tr><tr><td class="num">1</td><td>Y2</td><td>DC2</td><td>C1</td><td>M2</td><td class="num">8</td></tr><tr><td class="num">1</td><td>Y2</td><td>DC2</td><td>C2</td><td>M1</td><td class="num">5</td></tr><tr><td class="num">2</td><td>Y1</td><td>DC1</td><td>C1</td><td>M1</td><td class="num">4</td></tr><tr><td class="num">2</td><td>Y1</td><td>DC1</td><td>C2</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Y1</td><td>DC2</td><td>C1</td><td>M2</td><td class="num">16</td></tr><tr><td class="num">2</td><td>Y1</td><td>DC2</td><td>C2</td><td>M2</td><td class="num">20</td></tr><tr><td class="num">2</td><td>Y2</td><td>DC1</td><td>C1</td><td>M2</td><td class="num">2</td></tr><tr><td class="num">2</td><td>Y2</td><td>DC1</td><td>C2</td><td>M2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Y2</td><td>DC2</td><td>C1</td><td>M2</td><td class="num">4</td></tr></tbody></table></div></details><details class="acc"><summary>Componentes / Y comprado — Fornecedor → Fábrica</summary><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Item</th><th>V</th><th>F</th><th>Modal</th><th>Qtd</th></tr></thead><tbody><tr><td class="num">1</td><td>X X1</td><td>V1</td><td>F1</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>X X1</td><td>V1</td><td>F1</td><td>M2</td><td class="num">10</td></tr><tr><td class="num">1</td><td>X X1</td><td>V1</td><td>F2</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>X X1</td><td>V1</td><td>F2</td><td>M2</td><td class="num">20</td></tr><tr><td class="num">1</td><td>X X1</td><td>V2</td><td>F2</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>X X1</td><td>V1</td><td>F2</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>X X1</td><td>V1</td><td>F2</td><td>M2</td><td class="num">20</td></tr><tr><td class="num">2</td><td>X X1</td><td>V2</td><td>F2</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>Y Y1</td><td>V1</td><td>F1</td><td>M2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Y Y1</td><td>V1</td><td>F1</td><td>M2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Y Y2</td><td>V1</td><td>F1</td><td>M2</td><td class="num">4</td></tr></tbody></table></div></details><h3 class="sec-h">Uso dos modais <span class="sec-tag">G3</span></h3><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Origem</th><th>Destino</th><th>Modal</th><th>Qtd</th><th>Cap.</th><th>Uso</th></tr></thead><tbody><tr><td class="num">1</td><td>DC1</td><td>C1</td><td>M2</td><td class="num">10</td><td class="num">20</td><td><span class="bar"><i style="width:50%"></i></span><span class="bar-val">50%</span></td></tr><tr><td class="num">1</td><td>DC1</td><td>C2</td><td>M2</td><td class="num">10</td><td class="num">20</td><td><span class="bar"><i style="width:50%"></i></span><span class="bar-val">50%</span></td></tr><tr><td class="num">1</td><td>DC2</td><td>C1</td><td>M2</td><td class="num">8</td><td class="num">20</td><td><span class="bar"><i style="width:40%"></i></span><span class="bar-val">40%</span></td></tr><tr><td class="num">1</td><td>DC2</td><td>C2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>DC2</td><td>C2</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>F1</td><td>DC1</td><td>M1</td><td class="num">7</td><td class="num">10</td><td><span class="bar"><i style="width:70%"></i></span><span class="bar-val">70%</span></td></tr><tr><td class="num">1</td><td>F1</td><td>DC1</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>F1</td><td>DC2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>F1</td><td>DC2</td><td>M2</td><td class="num">18</td><td class="num">20</td><td><span class="bar bar--warn"><i style="width:90%"></i></span><span class="bar-val">90%</span></td></tr><tr><td class="num">1</td><td>F2</td><td>DC1</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>F2</td><td>DC2</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>V1</td><td>F1</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>V1</td><td>F1</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>V1</td><td>F2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>V1</td><td>F2</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>V2</td><td>F2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">2</td><td>DC1</td><td>C1</td><td>M1</td><td class="num">4</td><td class="num">10</td><td><span class="bar"><i style="width:40%"></i></span><span class="bar-val">40%</span></td></tr><tr><td class="num">2</td><td>DC1</td><td>C1</td><td>M2</td><td class="num">2</td><td class="num">20</td><td><span class="bar"><i style="width:10%"></i></span><span class="bar-val">10%</span></td></tr><tr><td class="num">2</td><td>DC1</td><td>C2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">2</td><td>DC1</td><td>C2</td><td>M2</td><td class="num">10</td><td class="num">20</td><td><span class="bar"><i style="width:50%"></i></span><span class="bar-val">50%</span></td></tr><tr><td class="num">2</td><td>DC2</td><td>C1</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">2</td><td>DC2</td><td>C2</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">2</td><td>F1</td><td>DC2</td><td>M1</td><td class="num">4</td><td class="num">10</td><td><span class="bar"><i style="width:40%"></i></span><span class="bar-val">40%</span></td></tr><tr><td class="num">2</td><td>F1</td><td>DC2</td><td>M2</td><td class="num">10</td><td class="num">20</td><td><span class="bar"><i style="width:50%"></i></span><span class="bar-val">50%</span></td></tr><tr><td class="num">2</td><td>F2</td><td>DC1</td><td>M1</td><td class="num">9</td><td class="num">10</td><td><span class="bar bar--warn"><i style="width:90%"></i></span><span class="bar-val">90%</span></td></tr><tr><td class="num">2</td><td>F2</td><td>DC2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">2</td><td>F2</td><td>DC2</td><td>M2</td><td class="num">16</td><td class="num">20</td><td><span class="bar bar--warn"><i style="width:80%"></i></span><span class="bar-val">80%</span></td></tr><tr><td class="num">2</td><td>V1</td><td>F1</td><td>M2</td><td class="num">14</td><td class="num">20</td><td><span class="bar"><i style="width:70%"></i></span><span class="bar-val">70%</span></td></tr><tr><td class="num">2</td><td>V1</td><td>F2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">2</td><td>V1</td><td>F2</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">2</td><td>V2</td><td>F2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr></tbody></table></div><h3 class="sec-h">Estoques <span class="sec-tag">G3</span></h3><details open class="acc"><summary>Estoque nas fábricas (componentes + acabados)</summary><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Fábrica</th><th>Item</th><th>Estoque final</th></tr></thead><tbody><tr><td class="num">1</td><td>F1</td><td>Comp. X1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>F1</td><td>Comp. X2</td><td class="num">45</td></tr><tr><td class="num">1</td><td>F2</td><td>Comp. X1</td><td class="num">40</td></tr><tr><td class="num">1</td><td>F2</td><td>Comp. X2</td><td class="num">50</td></tr><tr><td class="num">2</td><td>F1</td><td>Comp. X1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F1</td><td>Comp. X2</td><td class="num">45</td></tr><tr><td class="num">2</td><td>F2</td><td>Comp. X1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F2</td><td>Comp. X2</td><td class="num">15</td></tr><tr><td class="num">1</td><td>F1</td><td>Acab. Y1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>F1</td><td>Acab. Y2</td><td class="num">10</td></tr><tr><td class="num">1</td><td>F2</td><td>Acab. Y1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>F2</td><td>Acab. Y2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F1</td><td>Acab. Y1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F1</td><td>Acab. Y2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F2</td><td>Acab. Y1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F2</td><td>Acab. Y2</td><td class="num">10</td></tr></tbody></table></div></details><details class="acc"><summary>Estoque nos CDs</summary><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>CD</th><th>Y</th><th>Estoque final</th></tr></thead><tbody><tr><td class="num">1</td><td>DC1</td><td>Y1</td><td class="num">15</td></tr><tr><td class="num">1</td><td>DC1</td><td>Y2</td><td class="num">22</td></tr><tr><td class="num">1</td><td>DC2</td><td>Y1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>DC2</td><td>Y2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>DC1</td><td>Y1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>DC1</td><td>Y2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>DC2</td><td>Y1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>DC2</td><td>Y2</td><td class="num">10</td></tr></tbody></table></div></details><h3 class="sec-h">Manuseio dos CDs <span class="sec-tag">G4</span></h3><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>CD</th><th>Entrada (≤50)</th><th>Saída (≤50)</th></tr></thead><tbody><tr><td class="num">1</td><td>DC1</td><td>47 (94%)</td><td>20 (40%)</td></tr><tr><td class="num">1</td><td>DC2</td><td>48 (96%)</td><td>38 (76%)</td></tr><tr><td class="num">2</td><td>DC1</td><td>9 (18%)</td><td>26 (52%)</td></tr><tr><td class="num">2</td><td>DC2</td><td>40 (80%)</td><td>40 (80%)</td></tr></tbody></table></div><h3 class="sec-h">Demonstração de resultado <span class="sec-tag">G5</span></h3><div class="tbl-wrap"><table class="dre"><tbody><tr><td>(+) Receita líquida</td><td class="num">R$ 11.780</td></tr><tr><td>(−) Custo de compras</td><td class="num">R$ 1.100</td></tr><tr><td>(−) Custo logístico</td><td class="num">R$ 3.920</td></tr><tr><td>(−) Custo variável de produção</td><td class="num">R$ 2.000</td></tr><tr><td>(−) Custo fixo de produção</td><td class="num">R$ 3.000</td></tr><tr><td>(−) Custo de capacidade extra</td><td class="num">R$ 0</td></tr><tr><td>(−) Custo de estoque</td><td class="num">R$ 80</td></tr><tr class="dre-total"><td>(=) LUCRO OPERACIONAL</td><td class="num">R$ 1.590</td></tr></tbody></table></div></div><div class="scen" data-key="pessimista"><div class="stats"><article class="stat"><span class="stat-label">Receita líquida</span><span class="stat-val">R$ 8.455</span></article><article class="stat"><span class="stat-label">Custos totais</span><span class="stat-val">R$ 7.000</span></article><article class="stat"><span class="stat-label">Lucro operacional</span><span class="stat-val">R$ 1.095</span><span class="stat-sub">após todos os custos</span></article><article class="stat"><span class="stat-label">Demanda atendida</span><span class="stat-val">89/89</span><span class="stat-sub">100% atendida</span></article></div><h3 class="sec-h">Plano de produção <span class="sec-tag">G2</span></h3><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Fábrica</th><th>Y</th><th>Máquina</th><th>Quantidade</th></tr></thead><tbody><tr><td class="num">1</td><td>F1</td><td>Y1</td><td>RA</td><td class="num">15</td></tr><tr><td class="num">1</td><td>F1</td><td>Y2</td><td>RB</td><td class="num">40</td></tr><tr><td class="num">1</td><td>F2</td><td>Y1</td><td>RC</td><td class="num">10</td></tr><tr><td class="num">1</td><td>F2</td><td>Y1</td><td>RD</td><td class="num">50</td></tr><tr><td class="num">1</td><td>F2</td><td>Y2</td><td>RC</td><td class="num">5</td></tr></tbody></table></div><h3 class="sec-h">Plano de compras <span class="sec-tag">G1</span></h3><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Item</th><th>Fornecedor</th><th>Qtd</th></tr></thead><tbody><tr><td class="num">1</td><td>Comp. X1</td><td>V1</td><td class="num">50</td></tr><tr><td class="num">1</td><td>Comp. X1</td><td>V2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Acab. Y1</td><td>V1</td><td class="num">6</td></tr><tr><td class="num">2</td><td>Acab. Y2</td><td>V1</td><td class="num">3</td></tr></tbody></table></div><h3 class="sec-h">Plano de transporte <span class="sec-tag">G1 + G3</span></h3><details open class="acc"><summary>Acabados — Fábrica → CD</summary><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Y</th><th>F</th><th>CD</th><th>Modal</th><th>Qtd</th></tr></thead><tbody><tr><td class="num">1</td><td>Y1</td><td>F1</td><td>DC2</td><td>M2</td><td class="num">10</td></tr><tr><td class="num">1</td><td>Y1</td><td>F2</td><td>DC1</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>Y1</td><td>F2</td><td>DC1</td><td>M2</td><td class="num">16</td></tr><tr><td class="num">1</td><td>Y1</td><td>F2</td><td>DC2</td><td>M1</td><td class="num">9</td></tr><tr><td class="num">1</td><td>Y1</td><td>F2</td><td>DC2</td><td>M2</td><td class="num">20</td></tr><tr><td class="num">1</td><td>Y2</td><td>F1</td><td>DC1</td><td>M1</td><td class="num">4</td></tr><tr><td class="num">1</td><td>Y2</td><td>F1</td><td>DC1</td><td>M2</td><td class="num">20</td></tr><tr><td class="num">1</td><td>Y2</td><td>F1</td><td>DC2</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>Y2</td><td>F1</td><td>DC2</td><td>M2</td><td class="num">1</td></tr><tr><td class="num">2</td><td>Y1</td><td>F2</td><td>DC2</td><td>M1</td><td class="num">6</td></tr><tr><td class="num">2</td><td>Y2</td><td>F1</td><td>DC1</td><td>M1</td><td class="num">3</td></tr></tbody></table></div></details><details open class="acc"><summary>Acabados — CD → Cliente</summary><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Y</th><th>CD</th><th>C</th><th>Modal</th><th>Qtd</th></tr></thead><tbody><tr><td class="num">1</td><td>Y1</td><td>DC1</td><td>C1</td><td>M1</td><td class="num">7</td></tr><tr><td class="num">1</td><td>Y1</td><td>DC1</td><td>C2</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>Y1</td><td>DC2</td><td>C2</td><td>M1</td><td class="num">8</td></tr><tr><td class="num">1</td><td>Y2</td><td>DC1</td><td>C2</td><td>M2</td><td class="num">11</td></tr><tr><td class="num">1</td><td>Y2</td><td>DC2</td><td>C1</td><td>M1</td><td class="num">6</td></tr><tr><td class="num">2</td><td>Y1</td><td>DC1</td><td>C1</td><td>M1</td><td class="num">4</td></tr><tr><td class="num">2</td><td>Y1</td><td>DC2</td><td>C1</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Y1</td><td>DC2</td><td>C2</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Y1</td><td>DC2</td><td>C2</td><td>M2</td><td class="num">12</td></tr><tr><td class="num">2</td><td>Y2</td><td>DC1</td><td>C1</td><td>M1</td><td class="num">4</td></tr><tr><td class="num">2</td><td>Y2</td><td>DC1</td><td>C2</td><td>M1</td><td class="num">7</td></tr></tbody></table></div></details><details class="acc"><summary>Componentes / Y comprado — Fornecedor → Fábrica</summary><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Item</th><th>V</th><th>F</th><th>Modal</th><th>Qtd</th></tr></thead><tbody><tr><td class="num">1</td><td>X X1</td><td>V1</td><td>F1</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>X X1</td><td>V1</td><td>F1</td><td>M2</td><td class="num">10</td></tr><tr><td class="num">1</td><td>X X1</td><td>V1</td><td>F2</td><td>M1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>X X1</td><td>V1</td><td>F2</td><td>M2</td><td class="num">20</td></tr><tr><td class="num">1</td><td>X X1</td><td>V2</td><td>F2</td><td>M2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>Y Y1</td><td>V1</td><td>F2</td><td>M1</td><td class="num">6</td></tr><tr><td class="num">2</td><td>Y Y2</td><td>V1</td><td>F1</td><td>M1</td><td class="num">3</td></tr></tbody></table></div></details><h3 class="sec-h">Uso dos modais <span class="sec-tag">G3</span></h3><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Origem</th><th>Destino</th><th>Modal</th><th>Qtd</th><th>Cap.</th><th>Uso</th></tr></thead><tbody><tr><td class="num">1</td><td>DC1</td><td>C1</td><td>M1</td><td class="num">7</td><td class="num">10</td><td><span class="bar"><i style="width:70%"></i></span><span class="bar-val">70%</span></td></tr><tr><td class="num">1</td><td>DC1</td><td>C2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>DC1</td><td>C2</td><td>M2</td><td class="num">11</td><td class="num">20</td><td><span class="bar"><i style="width:55%"></i></span><span class="bar-val">55%</span></td></tr><tr><td class="num">1</td><td>DC2</td><td>C1</td><td>M1</td><td class="num">6</td><td class="num">10</td><td><span class="bar"><i style="width:60%"></i></span><span class="bar-val">60%</span></td></tr><tr><td class="num">1</td><td>DC2</td><td>C2</td><td>M1</td><td class="num">8</td><td class="num">10</td><td><span class="bar bar--warn"><i style="width:80%"></i></span><span class="bar-val">80%</span></td></tr><tr><td class="num">1</td><td>F1</td><td>DC1</td><td>M1</td><td class="num">4</td><td class="num">10</td><td><span class="bar"><i style="width:40%"></i></span><span class="bar-val">40%</span></td></tr><tr><td class="num">1</td><td>F1</td><td>DC1</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>F1</td><td>DC2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>F1</td><td>DC2</td><td>M2</td><td class="num">11</td><td class="num">20</td><td><span class="bar"><i style="width:55%"></i></span><span class="bar-val">55%</span></td></tr><tr><td class="num">1</td><td>F2</td><td>DC1</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>F2</td><td>DC1</td><td>M2</td><td class="num">16</td><td class="num">20</td><td><span class="bar bar--warn"><i style="width:80%"></i></span><span class="bar-val">80%</span></td></tr><tr><td class="num">1</td><td>F2</td><td>DC2</td><td>M1</td><td class="num">9</td><td class="num">10</td><td><span class="bar bar--warn"><i style="width:90%"></i></span><span class="bar-val">90%</span></td></tr><tr><td class="num">1</td><td>F2</td><td>DC2</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>V1</td><td>F1</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>V1</td><td>F1</td><td>M2</td><td class="num">10</td><td class="num">20</td><td><span class="bar"><i style="width:50%"></i></span><span class="bar-val">50%</span></td></tr><tr><td class="num">1</td><td>V1</td><td>F2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>V1</td><td>F2</td><td>M2</td><td class="num">20</td><td class="num">20</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">1</td><td>V2</td><td>F2</td><td>M2</td><td class="num">10</td><td class="num">20</td><td><span class="bar"><i style="width:50%"></i></span><span class="bar-val">50%</span></td></tr><tr><td class="num">2</td><td>DC1</td><td>C1</td><td>M1</td><td class="num">8</td><td class="num">10</td><td><span class="bar bar--warn"><i style="width:80%"></i></span><span class="bar-val">80%</span></td></tr><tr><td class="num">2</td><td>DC1</td><td>C2</td><td>M1</td><td class="num">7</td><td class="num">10</td><td><span class="bar"><i style="width:70%"></i></span><span class="bar-val">70%</span></td></tr><tr><td class="num">2</td><td>DC2</td><td>C1</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">2</td><td>DC2</td><td>C2</td><td>M1</td><td class="num">10</td><td class="num">10</td><td><span class="bar bar--full"><i style="width:100%"></i></span><span class="bar-val">100%</span></td></tr><tr><td class="num">2</td><td>DC2</td><td>C2</td><td>M2</td><td class="num">12</td><td class="num">20</td><td><span class="bar"><i style="width:60%"></i></span><span class="bar-val">60%</span></td></tr><tr><td class="num">2</td><td>F1</td><td>DC1</td><td>M1</td><td class="num">3</td><td class="num">10</td><td><span class="bar"><i style="width:30%"></i></span><span class="bar-val">30%</span></td></tr><tr><td class="num">2</td><td>F2</td><td>DC2</td><td>M1</td><td class="num">6</td><td class="num">10</td><td><span class="bar"><i style="width:60%"></i></span><span class="bar-val">60%</span></td></tr><tr><td class="num">2</td><td>V1</td><td>F1</td><td>M1</td><td class="num">3</td><td class="num">10</td><td><span class="bar"><i style="width:30%"></i></span><span class="bar-val">30%</span></td></tr><tr><td class="num">2</td><td>V1</td><td>F2</td><td>M1</td><td class="num">6</td><td class="num">10</td><td><span class="bar"><i style="width:60%"></i></span><span class="bar-val">60%</span></td></tr></tbody></table></div><h3 class="sec-h">Estoques <span class="sec-tag">G3</span></h3><details open class="acc"><summary>Estoque nas fábricas (componentes + acabados)</summary><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>Fábrica</th><th>Item</th><th>Estoque final</th></tr></thead><tbody><tr><td class="num">1</td><td>F1</td><td>Comp. X1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>F1</td><td>Comp. X2</td><td class="num">45</td></tr><tr><td class="num">1</td><td>F2</td><td>Comp. X1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>F2</td><td>Comp. X2</td><td class="num">35</td></tr><tr><td class="num">2</td><td>F1</td><td>Comp. X1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F1</td><td>Comp. X2</td><td class="num">45</td></tr><tr><td class="num">2</td><td>F2</td><td>Comp. X1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F2</td><td>Comp. X2</td><td class="num">35</td></tr><tr><td class="num">1</td><td>F1</td><td>Acab. Y1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>F1</td><td>Acab. Y2</td><td class="num">10</td></tr><tr><td class="num">1</td><td>F2</td><td>Acab. Y1</td><td class="num">10</td></tr><tr><td class="num">1</td><td>F2</td><td>Acab. Y2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F1</td><td>Acab. Y1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F1</td><td>Acab. Y2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F2</td><td>Acab. Y1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>F2</td><td>Acab. Y2</td><td class="num">10</td></tr></tbody></table></div></details><details class="acc"><summary>Estoque nos CDs</summary><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>CD</th><th>Y</th><th>Estoque final</th></tr></thead><tbody><tr><td class="num">1</td><td>DC1</td><td>Y1</td><td class="num">14</td></tr><tr><td class="num">1</td><td>DC1</td><td>Y2</td><td class="num">18</td></tr><tr><td class="num">1</td><td>DC2</td><td>Y1</td><td class="num">36</td></tr><tr><td class="num">1</td><td>DC2</td><td>Y2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>DC1</td><td>Y1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>DC1</td><td>Y2</td><td class="num">10</td></tr><tr><td class="num">2</td><td>DC2</td><td>Y1</td><td class="num">10</td></tr><tr><td class="num">2</td><td>DC2</td><td>Y2</td><td class="num">10</td></tr></tbody></table></div></details><h3 class="sec-h">Manuseio dos CDs <span class="sec-tag">G4</span></h3><div class="tbl-wrap"><table><thead><tr><th>Per</th><th>CD</th><th>Entrada (≤50)</th><th>Saída (≤50)</th></tr></thead><tbody><tr><td class="num">1</td><td>DC1</td><td>50 (100%)</td><td>28 (56%)</td></tr><tr><td class="num">1</td><td>DC2</td><td>50 (100%)</td><td>14 (28%)</td></tr><tr><td class="num">2</td><td>DC1</td><td>3 (6%)</td><td>15 (30%)</td></tr><tr><td class="num">2</td><td>DC2</td><td>6 (12%)</td><td>32 (64%)</td></tr></tbody></table></div><h3 class="sec-h">Demonstração de resultado <span class="sec-tag">G5</span></h3><div class="tbl-wrap"><table class="dre"><tbody><tr><td>(+) Receita líquida</td><td class="num">R$ 8.455</td></tr><tr><td>(−) Custo de compras</td><td class="num">R$ 450</td></tr><tr><td>(−) Custo logístico</td><td class="num">R$ 2.670</td></tr><tr><td>(−) Custo variável de produção</td><td class="num">R$ 1.800</td></tr><tr><td>(−) Custo fixo de produção</td><td class="num">R$ 2.000</td></tr><tr><td>(−) Custo de capacidade extra</td><td class="num">R$ 0</td></tr><tr><td>(−) Custo de estoque</td><td class="num">R$ 80</td></tr><tr class="dre-total"><td>(=) LUCRO OPERACIONAL</td><td class="num">R$ 1.095</td></tr></tbody></table></div></div>
+</section>
+
+<!-- Seção Maturidade S&OP removida: o enunciado não fornece informações
+     suficientes sobre processos atuais, ferramentas e estrutura organizacional
+     da empresa de bioetanol para um diagnóstico Lapide responsável. -->
+
+
+
+<section id="param" class="param-wide">
+  <h2><span class="num">v.</span>Análise paramétrica completa</h2>
+  <p class="lead">4 parâmetros do modelo variando em tempo real: não-entregas, preço de venda, imposto e custo fixo de ativação. Os custos operacionais (compras, logística, produção variável, estoque) ficam fixos no plano ótimo de cada cenário — só os parâmetros multiplicativos da FO mudam. O lucro recalcula a cada movimento, e o <em>tornado chart</em> mostra quem mais impacta o resultado.</p>
+
+  <!-- Controles compactos em UMA linha -->
+  <div class="param-controls">
+    <div class="param-row">
+      <span class="param-label">Cenário</span>
+      <div class="param-radio">
+        <label><input type="radio" name="paramCen" value="mais_provavel" checked> Mais Provável</label>
+        <label><input type="radio" name="paramCen" value="otimista"> Otimista (+10%)</label>
+        <label><input type="radio" name="paramCen" value="pessimista"> Pessimista (−20%)</label>
+      </div>
+      <button class="param-reset" id="btnReset">↻ Restaurar base</button>
+    </div>
+    <div class="param-grid">
+      <div class="param-slider-block">
+        <div class="param-slider-head"><span class="param-slider-name">n &mdash; não-entregas</span><span class="param-slider-display"><span id="vN">0</span> <small>un.</small></span></div>
+        <input type="range" id="sN" min="0" max="20" value="0" step="1" class="param-slider">
+        <div class="param-slider-range"><span>0</span><span>20</span></div>
+      </div>
+      <div class="param-slider-block">
+        <div class="param-slider-head"><span class="param-slider-name">p &mdash; preço unit.</span><span class="param-slider-display">R$ <span id="vP">100</span></span></div>
+        <input type="range" id="sP" min="50" max="150" value="100" step="1" class="param-slider">
+        <div class="param-slider-range"><span>R$ 50</span><span>R$ 150</span></div>
+      </div>
+      <div class="param-slider-block">
+        <div class="param-slider-head"><span class="param-slider-name">τ &mdash; imposto</span><span class="param-slider-display"><span id="vT">5</span>%</span></div>
+        <input type="range" id="sT" min="0" max="25" value="5" step="1" class="param-slider">
+        <div class="param-slider-range"><span>0%</span><span>25%</span></div>
+      </div>
+      <div class="param-slider-block">
+        <div class="param-slider-head"><span class="param-slider-name">c_fix &mdash; custo fixo</span><span class="param-slider-display">R$ <span id="vF">500</span></span></div>
+        <input type="range" id="sF" min="100" max="2000" value="500" step="50" class="param-slider">
+        <div class="param-slider-range"><span>R$ 100</span><span>R$ 2.000</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs em tempo real -->
+  <div class="param-kpis">
+    <article class="param-kpi"><span class="param-kpi-label">Receita líquida</span><span class="param-kpi-val" id="kpiReceita">R$ 10.640<span class="param-kpi-arrow" id="arrReceita"></span></span><span class="param-kpi-sub" id="kpiReceitaSub">(D − n) · p · (1 − τ)</span></article>
+    <article class="param-kpi"><span class="param-kpi-label">Custos operacionais</span><span class="param-kpi-val cool" id="kpiCustos">R$ 9.260<span class="param-kpi-arrow" id="arrCustos"></span></span><span class="param-kpi-sub" id="kpiCustosSub">fixos + variáveis</span></article>
+    <article class="param-kpi"><span class="param-kpi-label">Δ vs base</span><span class="param-kpi-val" id="kpiDelta">0</span><span class="param-kpi-sub" id="kpiDeltaPct">0%</span></article>
+    <article class="param-kpi"><span class="param-kpi-label">Lucro estimado</span><span class="param-kpi-val brass" id="kpiLucro">R$ 1.380<span class="param-kpi-arrow" id="arrLucro"></span></span><span class="param-kpi-sub" id="kpiLucroSub">vs base: R$ 1.380</span></article>
+  </div>
+
+  <!-- Grid de graficos: Scan (esquerda, mais largo) + Tornado (direita) -->
+  <div class="param-charts-grid">
+    <div class="param-chart-card">
+      <div class="param-chart-head">
+        <span class="param-chart-title">Lucro × parâmetro</span>
+        <div class="param-chart-controls">
+          <label>Varrer:</label>
+          <select id="paramVarrer" class="param-select">
+            <option value="n">n (não-entregas)</option>
+            <option value="p">Preço unitário</option>
+            <option value="t">Imposto τ</option>
+            <option value="f">Custo fixo c_fix</option>
+          </select>
+        </div>
+      </div>
+      <div class="param-chart-wrap"><canvas id="chartScan" width="900" height="300"></canvas></div>
+      <div class="param-chart-sub">Ponto dourado = valor atual (pulsa ao mover slider). Linha pontilhada laranja = break-even.</div>
+    </div>
+    <div class="param-chart-card">
+      <div class="param-chart-head">
+        <span class="param-chart-title">Tornado &mdash; sensibilidade ±20%</span>
+      </div>
+      <div class="param-chart-wrap"><canvas id="chartTornado" width="600" height="300"></canvas></div>
+      <div class="param-chart-sub">Cada barra: impacto no lucro se o parâmetro variar ±20% da base. Quem move mais aparece em destaque.</div>
+    </div>
+  </div>
+
+  <!-- Composicao: full width, compacta -->
+  <div class="param-chart-card" style="margin-bottom:14px">
+    <div class="param-chart-head">
+      <span class="param-chart-title">Composição do resultado &mdash; valores atuais</span>
+    </div>
+    <div class="param-chart-wrap"><canvas id="chartComp" width="1400" height="190"></canvas></div>
+  </div>
+
+  <p style="font-size:13px;color:var(--ink-soft);margin-top:6px"><em>Observação metodológica:</em> esta análise mantém as <strong>variáveis ótimas fixas</strong> nos valores que o solver encontrou — não re-otimiza. Os parâmetros que aparecem multiplicativamente na FO (preço, imposto, custo fixo, n) podem ser re-avaliados sem rodar o solver de novo. Variar parâmetros que mudariam a estrutura da solução (capacidade, lotes, BOM) exigiria re-otimizar — não está coberto aqui.</p>
+</section>
+
+
+</main>
+
+</section>
+
+<footer>
+  <span>Relatório técnico — Parte II — Grupo 1 — EPD035</span>
+  <span>Pesquisa Operacional aplicada a S&amp;OP</span>
+</footer>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+  integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
+  crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
+  crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});"></script>
+
+<script>
+(function(){
+  var tabs = document.querySelectorAll('.tab-btn');
+  var secs = document.querySelectorAll('section');
+  tabs.forEach(function(b){
+    b.addEventListener('click', function(){
+      tabs.forEach(function(x){ x.classList.remove('active'); });
+      secs.forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      var t = document.getElementById(b.getAttribute('data-tab'));
+      if(t) t.classList.add('active');
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+  });
+  var scbtns = document.querySelectorAll('.sc-btn');
+  var scens  = document.querySelectorAll('.scen');
+  function activate(k){
+    scbtns.forEach(function(x){ x.classList.toggle('active', x.getAttribute('data-k')===k); });
+    scens.forEach(function(x){ x.classList.toggle('active', x.getAttribute('data-key')===k); });
+  }
+  scbtns.forEach(function(b){ b.addEventListener('click', function(){ activate(b.getAttribute('data-k')); }); });
+  activate('mais_provavel');
+})();
+</script>
+
+
+<script id="param-analysis-js">
+(function(){
+  const SCEN = {
+    mais_provavel: {nome:'Mais Provável',     dem:112, receita_base:10640, custos_var:770+3510+1900+80,  n_ativ:6, ext:0, lucro:1380},
+    otimista:      {nome:'Otimista (+10%)',   dem:124, receita_base:11780, custos_var:1340+3870+1900+80, n_ativ:6, ext:0, lucro:1590},
+    pessimista:    {nome:'Pessimista (−20%)', dem:89,  receita_base:8455,  custos_var:1310+2470+1500+80, n_ativ:4, ext:0, lucro:1095}
+  };
+  const BASE = {n:0, p:100, t:5, f:500};
+
+  let cen = 'mais_provavel';
+  let s = Object.assign({}, BASE);
+  let lastTouched = null;          // qual parametro foi mexido por ultimo (highlight)
+  let lastTouchedAt = 0;
+  let animState = {};              // valores em transicao por chave
+  let kpiPrev = {};                // valores anteriores dos KPIs (pra setas)
+  let rafId = null;
+
+  function $(id){ return document.getElementById(id); }
+  function fmt(v){ const sign = v<0?'−':''; return sign + 'R$ ' + Math.abs(Math.round(v)).toLocaleString('pt-BR'); }
+  function fmtNoSign(v){ return 'R$ ' + Math.round(v).toLocaleString('pt-BR'); }
+  function lerp(a, b, t){ return a + (b - a) * t; }
+  function easeOut(t){ return 1 - Math.pow(1 - t, 3); }
+
+  function calc(opts){
+    const sc = SCEN[opts.cen || cen];
+    const n = opts.n ?? s.n;
+    const p = opts.p ?? s.p;
+    const t = opts.t ?? s.t;
+    const f = opts.f ?? s.f;
+    const precoLiq = p * (1 - t/100);
+    const receita = (sc.dem - n) * precoLiq;
+    const custosVar = sc.custos_var;
+    const custosFixos = sc.n_ativ * f;
+    const custosExtra = sc.ext * 100;
+    const lucro = receita - custosVar - custosFixos - custosExtra;
+    return {receita, custosVar, custosFixos, custosExtra, lucro, dem: sc.dem, n};
+  }
+
+  // ============================================================
+  // ANIMACAO POR REQUESTANIMATIONFRAME (tween 280ms easeOut)
+  // ============================================================
+  const ANIM_MS = 280;
+  function ensureKey(key, initVal){
+    if(animState[key] === undefined) animState[key] = {from:initVal, to:initVal, t0:performance.now(), done:true};
+  }
+  function setTarget(key, newVal){
+    const now = performance.now();
+    const cur = animState[key];
+    if(cur === undefined){ animState[key] = {from:newVal, to:newVal, t0:now, done:true}; return; }
+    // valor atual interpolado vira o novo 'from'
+    const elapsed = now - cur.t0;
+    const progress = Math.min(1, elapsed / ANIM_MS);
+    const curVal = lerp(cur.from, cur.to, easeOut(progress));
+    animState[key] = {from: curVal, to: newVal, t0: now, done: false};
+  }
+  function getAnim(key){
+    const a = animState[key]; if(!a) return 0;
+    const elapsed = performance.now() - a.t0;
+    if(elapsed >= ANIM_MS){ a.done = true; return a.to; }
+    return lerp(a.from, a.to, easeOut(elapsed / ANIM_MS));
+  }
+  function isAnimating(){ return Object.values(animState).some(a => !a.done); }
+
+  // ============================================================
+  // KPIs com animacao count-up e seta de direcao
+  // ============================================================
+  function updateKPIs(){
+    const r = calc({});
+    const base = calc({n:0, p:100, t:5, f:500, cen:cen});
+
+    setTarget('kpi_receita', r.receita);
+    setTarget('kpi_custos', r.custosVar + r.custosFixos);
+    setTarget('kpi_delta', r.lucro - base.lucro);
+    setTarget('kpi_lucro', r.lucro);
+    setTarget('kpi_deltaPct', base.lucro !== 0 ? ((r.lucro - base.lucro) / Math.abs(base.lucro)) * 100 : 0);
+
+    $('kpiReceitaSub').textContent = '(' + r.dem + ' − ' + r.n + ') · ' + s.p + ' · (1 − ' + s.t + '%)';
+    $('kpiCustosSub').textContent = 'var: ' + fmtNoSign(r.custosVar) + ' + fix: ' + fmtNoSign(r.custosFixos);
+    $('kpiLucroSub').textContent = 'base do cenário: ' + fmt(base.lucro);
+  }
+
+  function setArrow(el, key, newVal){
+    const prev = kpiPrev[key];
+    if(prev === undefined){ kpiPrev[key] = newVal; el.textContent = ''; return; }
+    if(Math.abs(newVal - prev) < 0.5){ return; }
+    el.textContent = newVal > prev ? ' ↑' : ' ↓';
+    el.style.color = newVal > prev ? '#88c99a' : '#d9826f';
+    kpiPrev[key] = newVal;
+    clearTimeout(el._t); el._t = setTimeout(() => el.textContent = '', 700);
+  }
+
+  function paintKPIs(){
+    const receita = getAnim('kpi_receita');
+    const custos = getAnim('kpi_custos');
+    const delta = getAnim('kpi_delta');
+    const lucro = getAnim('kpi_lucro');
+    const deltaPct = getAnim('kpi_deltaPct');
+
+    $('kpiReceita').firstChild.nodeValue = fmt(receita);
+    $('kpiCustos').firstChild.nodeValue = fmt(custos);
+    $('kpiDelta').firstChild.nodeValue = (delta>=0?'+':'') + fmt(delta).replace('−','-');
+    $('kpiDelta').style.color = delta>=0 ? '#88c99a' : '#d9826f';
+    $('kpiDeltaPct').textContent = (deltaPct>=0?'+':'') + deltaPct.toFixed(1) + '%';
+    $('kpiLucro').firstChild.nodeValue = fmt(lucro);
+    $('kpiLucro').style.color = lucro>=0 ? 'var(--brass)' : '#d9826f';
+
+    // setas
+    setArrow($('arrReceita'), 'receita', receita);
+    setArrow($('arrCustos'), 'custos', custos);
+    setArrow($('arrLucro'), 'lucro', lucro);
+  }
+
+  // ============================================================
+  // TORNADO com highlight da barra do parametro mexido
+  // ============================================================
+  function drawTornado(){
+    const ctx = $('chartTornado').getContext('2d');
+    const W = $('chartTornado').width, H = $('chartTornado').height;
+    ctx.clearRect(0,0,W,H);
+    const pad = {l:170, r:60, t:30, b:30};
+    const plotW = W - pad.l - pad.r;
+
+    const base = calc({n:0, p:100, t:5, f:500, cen:cen});
+    function impacto(varName){
+      const baseVal = {n:0, p:100, t:5, f:500}[varName];
+      let lo, hi;
+      if (varName === 'n'){ lo = 0; hi = 4; }
+      else { const d = baseVal * 0.20; lo = baseVal - d; hi = baseVal + d; }
+      const opts_lo = {n:0,p:100,t:5,f:500,cen:cen}; opts_lo[varName] = lo;
+      const opts_hi = {n:0,p:100,t:5,f:500,cen:cen}; opts_hi[varName] = hi;
+      return {key: varName, lo: calc(opts_lo).lucro - base.lucro, hi: calc(opts_hi).lucro - base.lucro,
+              label: {n:'n (não-entregas)', p:'Preço unitário', t:'Imposto τ', f:'Custo fixo c_fix'}[varName]};
+    }
+    const items = ['p','t','f','n'].map(impacto);
+    items.sort((a,b) => Math.abs(b.hi-b.lo) - Math.abs(a.hi-a.lo));
+
+    const maxAbs = Math.max.apply(null, items.flatMap(i => [Math.abs(i.lo), Math.abs(i.hi)]));
+    const xZero = pad.l + plotW * 0.5;
+    const scale = (plotW * 0.45) / Math.max(maxAbs, 1);
+    const barH = 30, gap = 14;
+    const now = performance.now();
+    const pulseT = Math.max(0, 1 - (now - lastTouchedAt) / 800);  // pulso dura 800ms
+
+    ctx.font = '12px "JetBrains Mono", monospace';
+    items.forEach((it, i) => {
+      const y = pad.t + i * (barH + gap);
+      const highlight = it.key === lastTouched && pulseT > 0;
+
+      // fundo destacado se highlighted
+      if(highlight){
+        ctx.fillStyle = `rgba(216,178,92,${0.10 + 0.15*pulseT})`;
+        ctx.fillRect(pad.l - 8, y - 4, plotW + 16, barH + 8);
+      }
+
+      ctx.fillStyle = highlight ? '#d8b25c' : 'rgba(255,255,255,0.75)';
+      ctx.textAlign = 'right';
+      ctx.font = highlight ? '600 12.5px "JetBrains Mono", monospace' : '12px "JetBrains Mono", monospace';
+      ctx.fillText(it.label, pad.l - 12, y + barH/2 + 4);
+      ctx.font = '12px "JetBrains Mono", monospace';
+
+      const negVal = Math.min(it.lo, it.hi);
+      const posVal = Math.max(it.lo, it.hi);
+      if (negVal < 0){
+        const w = Math.abs(negVal) * scale;
+        ctx.fillStyle = highlight ? '#e89a86' : '#d9826f';
+        ctx.fillRect(xZero - w, y, w, barH);
+        ctx.font = '600 11px "JetBrains Mono", monospace';
+        ctx.fillStyle = w > 60 ? '#0a0a0f' : 'rgba(255,255,255,0.85)';
+        ctx.textAlign = w > 60 ? 'left' : 'right';
+        ctx.fillText(fmt(negVal), w > 60 ? xZero - w + 6 : xZero - w - 6, y + barH/2 + 4);
+      }
+      if (posVal > 0){
+        const w = posVal * scale;
+        ctx.fillStyle = highlight ? '#a8d9b5' : '#88c99a';
+        ctx.fillRect(xZero, y, w, barH);
+        ctx.font = '600 11px "JetBrains Mono", monospace';
+        ctx.fillStyle = w > 60 ? '#0a0a0f' : 'rgba(255,255,255,0.85)';
+        ctx.textAlign = w > 60 ? 'right' : 'left';
+        ctx.fillText('+' + fmtNoSign(posVal), w > 60 ? xZero + w - 6 : xZero + w + 6, y + barH/2 + 4);
+      }
+      ctx.font = '12px "JetBrains Mono", monospace';
+    });
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(xZero, pad.t - 6); ctx.lineTo(xZero, pad.t + items.length*(barH+gap)); ctx.stroke();
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center';
+    ctx.fillText('Lucro base: ' + fmt(base.lucro), xZero, pad.t - 12);
+    ctx.fillStyle = '#d9826f'; ctx.textAlign = 'right'; ctx.fillText('Δ negativo', xZero - 8, H - 10);
+    ctx.fillStyle = '#88c99a'; ctx.textAlign = 'left';  ctx.fillText('Δ positivo', xZero + 8, H - 10);
+  }
+
+  // ============================================================
+  // SCAN com marcador "VOCE ESTA AQUI" pulsante + linha grossa
+  // ============================================================
+  function drawScan(){
+    const ctx = $('chartScan').getContext('2d');
+    const W = $('chartScan').width, H = $('chartScan').height;
+    ctx.clearRect(0,0,W,H);
+    const pad = {l:90, r:30, t:40, b:50};
+    const plotW = W - pad.l - pad.r, plotH = H - pad.t - pad.b;
+
+    const which = $('paramVarrer').value;
+    const ranges = {n:{min:0,max:20,step:1,label:'n (não-entregas)',fmtX:(v)=>v},
+                    p:{min:50,max:150,step:2,label:'Preço unitário (R$)',fmtX:(v)=>'R$ '+v},
+                    t:{min:0,max:25,step:1,label:'Imposto τ (%)',fmtX:(v)=>v+'%'},
+                    f:{min:100,max:2000,step:50,label:'c_fix (R$/máquina)',fmtX:(v)=>'R$ '+v}};
+    const R = ranges[which];
+
+    // Ponto X animado: interpola s[which] entre antigo e novo
+    const xKey = 'scan_x_' + which;
+    const xAnim = getAnim(xKey);
+    const yKey = 'scan_y_' + which;
+    const yAnim = getAnim(yKey);
+
+    const pts = [];
+    for(let v=R.min; v<=R.max; v+=R.step){
+      const opts = {n:s.n, p:s.p, t:s.t, f:s.f, cen:cen};
+      opts[which] = v;
+      pts.push({x:v, y:calc(opts).lucro});
+    }
+    const ys = pts.map(p=>p.y);
+    const yMin = Math.min(...ys, 0) * 1.1;
+    const yMax = Math.max(...ys, 0) * 1.1;
+    const yRange = yMax - yMin || 1;
+
+    function xPos(v){ return pad.l + ((v - R.min)/(R.max - R.min)) * plotW; }
+    function yPos(v){ return pad.t + (1 - (v - yMin)/yRange) * plotH; }
+
+    // Grid Y + labels Y
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.textAlign = 'right';
+    const yTicks = 5;
+    for(let i=0;i<=yTicks;i++){
+      const v = yMin + (yRange/yTicks)*i;
+      const y = yPos(v);
+      ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke();
+      ctx.fillText(fmtNoSign(v), pad.l - 8, y + 4);
+    }
+    ctx.textAlign = 'center';
+    const nLabels = 6;
+    for(let i=0;i<=nLabels;i++){
+      const v = R.min + ((R.max - R.min)/nLabels)*i;
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.fillText(R.fmtX(Math.round(v*10)/10), xPos(v), H - pad.b + 18);
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillText(R.label, (pad.l + W - pad.r)/2, H - 10);
+
+    if(yMin < 0 && yMax > 0){
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(pad.l, yPos(0)); ctx.lineTo(W-pad.r, yPos(0)); ctx.stroke();
+    }
+
+    const grad = ctx.createLinearGradient(0, pad.t, 0, H-pad.b);
+    grad.addColorStop(0, 'rgba(216,178,92,0.22)');
+    grad.addColorStop(1, 'rgba(216,178,92,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(xPos(pts[0].x), yPos(pts[0].y));
+    pts.forEach(p => ctx.lineTo(xPos(p.x), yPos(p.y)));
+    ctx.lineTo(xPos(pts[pts.length-1].x), yPos(Math.max(yMin, 0)));
+    ctx.lineTo(xPos(pts[0].x), yPos(Math.max(yMin, 0)));
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = '#d8b25c';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    pts.forEach((p,i) => i===0 ? ctx.moveTo(xPos(p.x), yPos(p.y)) : ctx.lineTo(xPos(p.x), yPos(p.y)));
+    ctx.stroke();
+
+    // break-even
+    for(let i=0;i<pts.length-1;i++){
+      if((pts[i].y >= 0 && pts[i+1].y < 0) || (pts[i].y <= 0 && pts[i+1].y > 0)){
+        const x0 = pts[i].x, x1 = pts[i+1].x, y0 = pts[i].y, y1 = pts[i+1].y;
+        const xb = x0 + (x1 - x0) * (-y0 / (y1 - y0));
+        ctx.strokeStyle = 'rgba(255,122,69,0.55)';
+        ctx.setLineDash([3,3]); ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(xPos(xb), pad.t); ctx.lineTo(xPos(xb), H-pad.b); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#ff7a45'; ctx.textAlign = 'left'; ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.fillText('break-even: ' + R.fmtX(Math.round(xb*10)/10), xPos(xb) + 6, pad.t + 14);
+        break;
+      }
+    }
+
+    // === MARCADOR "VOCE ESTA AQUI" (animado, glow, pulsante) ===
+    const xAtual = xAnim;
+    const yAtual = yAnim;
+    if(xAtual >= R.min && xAtual <= R.max){
+      const cx = xPos(xAtual), cy = yPos(yAtual);
+
+      // Linha vertical grossa
+      const isCurrent = (lastTouched === which);
+      ctx.strokeStyle = isCurrent ? 'rgba(216,178,92,0.85)' : 'rgba(216,178,92,0.45)';
+      ctx.lineWidth = isCurrent ? 2.5 : 1.8;
+      ctx.setLineDash([5,3]);
+      ctx.beginPath(); ctx.moveTo(cx, pad.t); ctx.lineTo(cx, H-pad.b); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Pulso (raio extra que decresce)
+      const now = performance.now();
+      const pulseT = Math.max(0, 1 - (now - lastTouchedAt) / 800);
+      if(pulseT > 0 && isCurrent){
+        for(let p=0;p<3;p++){
+          const radius = 10 + (1-pulseT) * (12 + p*8);
+          const alpha = pulseT * (0.35 - p*0.1);
+          if(alpha > 0){
+            ctx.strokeStyle = `rgba(216,178,92,${alpha})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI*2); ctx.stroke();
+          }
+        }
+      }
+
+      // Glow base
+      const glowGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 22);
+      glowGrad.addColorStop(0, 'rgba(216,178,92,0.55)');
+      glowGrad.addColorStop(1, 'rgba(216,178,92,0)');
+      ctx.fillStyle = glowGrad;
+      ctx.beginPath(); ctx.arc(cx, cy, 22, 0, Math.PI*2); ctx.fill();
+
+      // Ponto central
+      ctx.fillStyle = '#d8b25c';
+      ctx.beginPath(); ctx.arc(cx, cy, 9, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#0a0a0f'; ctx.lineWidth = 2.5; ctx.stroke();
+
+      // Tooltip do valor atual
+      const txt = R.fmtX(s[which]) + '  →  ' + fmtNoSign(yAtual);
+      ctx.font = '600 11.5px "JetBrains Mono", monospace';
+      const tw = ctx.measureText(txt).width;
+      const tx0 = Math.min(W - pad.r - tw - 12, Math.max(pad.l, cx - tw/2 - 6));
+      const ty0 = Math.max(pad.t + 4, cy - 32);
+      ctx.fillStyle = 'rgba(10,10,15,0.92)';
+      ctx.fillRect(tx0, ty0, tw + 12, 22);
+      ctx.strokeStyle = '#d8b25c'; ctx.lineWidth = 1;
+      ctx.strokeRect(tx0, ty0, tw + 12, 22);
+      ctx.fillStyle = '#d8b25c';
+      ctx.textAlign = 'left';
+      ctx.fillText(txt, tx0 + 6, ty0 + 15);
+    }
+  }
+
+  // ============================================================
+  // COMPOSICAO com barras animadas (interpolacao)
+  // ============================================================
+  function drawComp(){
+    const ctx = $('chartComp').getContext('2d');
+    const W = $('chartComp').width, H = $('chartComp').height;
+    ctx.clearRect(0,0,W,H);
+    const pad = {l:170, r:30, t:30, b:30};
+    const plotW = W - pad.l - pad.r;
+
+    const receita = getAnim('kpi_receita');
+    const custosVar = SCEN[cen].custos_var;
+    const custosFixos = SCEN[cen].n_ativ * s.f;
+    setTarget('comp_var', -custosVar);
+    setTarget('comp_fix', -custosFixos);
+    const lucro = getAnim('kpi_lucro');
+
+    const items = [
+      {label:'Receita',         val: receita,            color:'#88c99a'},
+      {label:'Custos variáveis',val: getAnim('comp_var'),color:'#5bc0eb'},
+      {label:'Custos fixos',    val: getAnim('comp_fix'),color:'#a78bfa'},
+      {label:'Lucro',           val: lucro,              color: lucro>=0 ? '#d8b25c' : '#d9826f'}
+    ];
+    const maxAbs = Math.max.apply(null, items.map(i=>Math.abs(i.val)));
+    const xZero = pad.l + plotW * 0.40;
+    const scale = (plotW * 0.6) / Math.max(maxAbs, 1);
+    const barH = 36, gap = 16;
+
+    ctx.font = '12px "JetBrains Mono", monospace';
+    items.forEach((it,i)=>{
+      const y = pad.t + i*(barH+gap);
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.textAlign = 'right';
+      ctx.fillText(it.label, pad.l - 12, y + barH/2 + 4);
+      const w = Math.abs(it.val) * scale;
+      const x = it.val >= 0 ? xZero : xZero - w;
+      ctx.fillStyle = it.color;
+      ctx.fillRect(x, y, w, barH);
+      ctx.font = '600 12px "JetBrains Mono", monospace';
+      ctx.fillStyle = w > 90 ? '#0a0a0f' : 'rgba(255,255,255,0.85)';
+      ctx.textAlign = w > 90 ? (it.val>=0?'left':'right') : (it.val>=0?'left':'right');
+      const txt = (it.val<0?'−':'') + 'R$ ' + Math.abs(Math.round(it.val)).toLocaleString('pt-BR');
+      if(w > 90){
+        ctx.fillText(txt, it.val>=0 ? x + 8 : x + w - 8, y + barH/2 + 4);
+      } else {
+        ctx.fillText(txt, it.val>=0 ? x + w + 8 : x - 8, y + barH/2 + 4);
+      }
+      ctx.font = '12px "JetBrains Mono", monospace';
+    });
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(xZero, pad.t - 8); ctx.lineTo(xZero, pad.t + items.length*(barH+gap));
+    ctx.stroke();
+  }
+
+  // ============================================================
+  // LOOP DE ANIMACAO
+  // ============================================================
+  function frame(){
+    paintKPIs();
+    drawTornado();
+    drawScan();
+    drawComp();
+    // continua se algo ainda esta animando OU se pulso ainda esta vivo
+    const pulseAlive = (performance.now() - lastTouchedAt) < 800;
+    if(isAnimating() || pulseAlive){
+      rafId = requestAnimationFrame(frame);
+    } else {
+      rafId = null;
+    }
+  }
+  function kick(){
+    if(rafId === null){ rafId = requestAnimationFrame(frame); }
+  }
+
+  // ============================================================
+  // EVENTOS
+  // ============================================================
+  function onSliderChange(varName, newVal){
+    s[varName] = newVal;
+    lastTouched = varName;
+    lastTouchedAt = performance.now();
+    // anima a posicao do marcador no scan se for o parametro ativo
+    const which = $('paramVarrer').value;
+    if(varName === which){
+      const newY = calc({}).lucro;
+      setTarget('scan_x_' + which, newVal);
+      setTarget('scan_y_' + which, newY);
+    }
+    updateKPIs();
+    kick();
+  }
+
+  $('sN').addEventListener('input', e=>{ const v=+e.target.value; $('vN').textContent=v; onSliderChange('n', v); });
+  $('sP').addEventListener('input', e=>{ const v=+e.target.value; $('vP').textContent=v; onSliderChange('p', v); });
+  $('sT').addEventListener('input', e=>{ const v=+e.target.value; $('vT').textContent=v; onSliderChange('t', v); });
+  $('sF').addEventListener('input', e=>{ const v=+e.target.value; $('vF').textContent=v; onSliderChange('f', v); });
+  document.querySelectorAll('input[name="paramCen"]').forEach(r =>
+    r.addEventListener('change', () => {
+      cen = document.querySelector('input[name="paramCen"]:checked').value;
+      lastTouched = null;
+      updateKPIs();
+      // reseta animacao de scan
+      const which = $('paramVarrer').value;
+      animState['scan_x_' + which] = {from: s[which], to: s[which], t0: performance.now(), done: true};
+      animState['scan_y_' + which] = {from: calc({}).lucro, to: calc({}).lucro, t0: performance.now(), done: true};
+      kick();
+    }));
+  $('paramVarrer').addEventListener('change', () => {
+    const which = $('paramVarrer').value;
+    lastTouched = which;
+    lastTouchedAt = performance.now();
+    animState['scan_x_' + which] = {from: s[which], to: s[which], t0: performance.now(), done: true};
+    animState['scan_y_' + which] = {from: calc({}).lucro, to: calc({}).lucro, t0: performance.now(), done: true};
+    kick();
+  });
+  $('btnReset').addEventListener('click', () => {
+    s = Object.assign({}, BASE);
+    $('sN').value=s.n; $('vN').textContent=s.n;
+    $('sP').value=s.p; $('vP').textContent=s.p;
+    $('sT').value=s.t; $('vT').textContent=s.t;
+    $('sF').value=s.f; $('vF').textContent=s.f;
+    lastTouched = null;
+    updateKPIs();
+    const which = $('paramVarrer').value;
+    setTarget('scan_x_' + which, s[which]);
+    setTarget('scan_y_' + which, calc({}).lucro);
+    kick();
+  });
+
+  // Inicializa estado de animacao
+  updateKPIs();
+  ['kpi_receita','kpi_custos','kpi_delta','kpi_lucro','kpi_deltaPct'].forEach(k => {
+    animState[k].from = animState[k].to; animState[k].done = true;
+  });
+  const initialWhich = $('paramVarrer').value;
+  setTarget('scan_x_' + initialWhich, s[initialWhich]);
+  setTarget('scan_y_' + initialWhich, calc({}).lucro);
+  animState['scan_x_' + initialWhich].from = animState['scan_x_' + initialWhich].to;
+  animState['scan_y_' + initialWhich].from = animState['scan_y_' + initialWhich].to;
+  animState['scan_x_' + initialWhich].done = true;
+  animState['scan_y_' + initialWhich].done = true;
+  kick();
+
+  window.addEventListener('resize', () => {
+    ['chartTornado','chartScan','chartComp'].forEach(id => {
+      const c = $(id);
+      const w = c.parentElement.clientWidth;
+      c.width = Math.min(900, w * 0.95);
+    });
+    kick();
+  });
+})();
+</script>
+
+</body></html>

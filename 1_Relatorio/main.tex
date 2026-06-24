@@ -1,0 +1,628 @@
+% =====================================================================
+% Relatório Executivo — Parte 2 — EPD035 (PCP) — UFMG
+% Grupo 1 — Planejamento Integrado da Cadeia de Suprimentos via PO
+% Prof. João Flávio de Freitas Almeida
+%
+% Para compilar no Overleaf: escolher PDFLaTeX como compilador.
+% Bibliografia: rodar BibTeX após o primeiro compile (Overleaf faz auto).
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+% ----- Pacotes -----
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[portuguese]{babel}
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=2.7cm,right=2.7cm]{geometry}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage[bookmarks=true,colorlinks=true,linkcolor=blue!50!black,
+            urlcolor=blue!50!black,citecolor=blue!50!black]{hyperref}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{titlesec}
+\usepackage{microtype}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% ----- Estilo -----
+\titleformat{\section}{\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
+\setlist{nosep,leftmargin=1.6em}
+\renewcommand{\arraystretch}{1.15}
+\definecolor{tbl-head}{HTML}{1F4E78}
+\definecolor{tbl-row}{HTML}{EEF3F8}
+\definecolor{warn}{HTML}{C8102E}
+
+% ----- Comandos auxiliares -----
+\newcommand{\rest}[1]{\textbf{(R#1)}}
+\newcommand{\rs}{R\$\,}
+
+% =====================================================================
+\begin{document}
+
+% ----- Capa -----
+\begin{titlepage}
+  \centering
+  \vspace*{1.5cm}
+  {\small Universidade Federal de Minas Gerais\par
+  Departamento de Engenharia de Produção\par
+  Disciplina EPD035 — Planejamento e Controle da Produção\par}
+  \vspace{2cm}
+  {\Huge\bfseries Planejamento Integrado da Cadeia de Suprimentos via Pesquisa Operacional\par}
+  \vspace{0.8cm}
+  {\Large\itshape Parte 2 — Modelo MILP, otimização e análise dos cenários\\ mais provável, otimista e pessimista\par}
+  \vfill
+  {\large Grupo 1 — Planejamento integrado da cadeia de suprimentos\par}
+  {\large Prof.\ João Flávio de Freitas Almeida\par}
+  \vspace{1cm}
+  {\large Belo Horizonte --- 2026\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% =====================================================================
+\section*{Resumo}
+\addcontentsline{toc}{section}{Resumo}
+
+A empresa de bioetanol enfrenta queda de 20\,\% nas receitas e elevação de 10\,\% nos custos operacionais, em um contexto no qual os planos funcionais (demanda, finanças, produção e suprimentos) permanecem desconexos entre si. Diante desse quadro, o presidente solicitou a elaboração de um plano integrado para os próximos dois períodos.
+
+Nesse cenário, o PCP via S\&OP torna-se a instância capaz de reconciliar os planos funcionais, garantir consistência das decisões em toda a cadeia (fornecedor $\to$ fábrica $\to$ CD $\to$ cliente) e devolver informação consolidada ao planejamento estratégico.
+
+Para responder a essa demanda, adotou-se um modelo de Pesquisa Operacional do tipo programação linear inteira-mista (MILP), formulado em GMPL (GNU MathProg) e resolvido pelo solver \emph{open-source} GLPK (Gnu Linear Programming Kit)~\cite{makhorin2015glpk} via a IDE GUSEK. O modelo cobre 14 famílias de restrições, incluindo lotes, capacidade de máquinas e modais, manuseio nos CDs, balanço de estoque, linhas de produção sequenciais (RA$\to$RB e RC$\to$RD) e atendimento obrigatório de demanda (com folga penalizada por Big-M, $M = 10^4$).
+
+Foi desenvolvido um plano integrado único, resolvido para os três cenários de demanda (mais provável, otimista $+10\,\%$ e pessimista $-20\,\%$). Os resultados mostram que é possível atender 100\,\% da demanda em todos os cenários, com lucros operacionais de \rs1.380 (mais provável), \rs1.590 (otimista) e \rs1.095 (pessimista). Já o plano transacional construído manualmente em planilhas pelo Grupo~1 reportava lucros superiores (\rs3.996, \rs4.444 e \rs3.855), mas a análise detalhada das planilhas mostrou que esses valores se sustentavam em inconsistências verificáveis com o enunciado: o custo fixo de produção foi subestimado entre \rs500 e \rs1.500 porque desconsiderava a ativação obrigatória em pares na linha sequencial (R10a); o fluxo de produção foi tratado como paralelo em vez de serial entre RA$\to$RB e RC$\to$RD (R10b); o lote $Y_1 = 11$ no cenário otimista violava a exigência de múltiplos de 5 (R11); e o estoque final em DC$_2$/$Y_2$/$P_2$ era nulo, abaixo do mínimo de 10 unidades (R5). Todas essas falhas foram corrigidas por construção no modelo otimizado.
+
+% =====================================================================
+\section{Contexto}
+
+\subsection{Contexto macro e da empresa}
+A empresa atua na produção e distribuição de \textbf{bioetanol em barris}, comercializando etanol normal ($Y_1$) e etanol aditivado ($Y_2$). A cadeia é composta por dois fornecedores ($V_1$, $V_2$) de cana ($X_1$) e aditivo ($X_2$), duas fábricas ($F_1$ com máquinas RA e RB em linha; $F_2$ com RC e RD em linha), dois centros de distribuição (DC$_1$, DC$_2$) e dois clientes (C$_1$, C$_2$). O transporte ocorre por trem ($M_1$, capacidade $\leq 10$ por rota) ou caminhão ($M_2$, $\leq 20$). O horizonte é de dois períodos.
+
+\subsection{Motivação do S\&OP}
+A empresa registrou redução de 20\,\% nas receitas e aumento de 10\,\% nos custos operacionais; embora a demanda não apresente sazonalidade nem tendência, os planos funcionais permanecem desconectados do planejamento estratégico, dificultando a execução. O Planejamento e Controle da Produção via S\&OP busca alinhar demanda, produção, suprimentos, logística e finanças em um único plano tático coerente.
+
+\subsection{O plano transacional da Parte 1 (ponto de partida)}
+Na Etapa~1, o plano foi construído manualmente em planilhas pelo Grupo~1\footnote{Nesta entrega, ``Grupo~1'' designa o grupo integrado da turma (23 integrantes, organizados nos sub-times G1--G5), e não o sub-time de suprimentos de 4 pessoas da proposta original do enunciado: a turma reorganizou os grupos conforme facultado no roteiro.}, em sequência de decisões locais entre os sub-times funcionais (G1 compras; G2 produção; G3 estoques e transporte; G4 entrega; G5 financeiro). Cada sub-time decidiu sua parte do plano com a informação que tinha à mão, sem visibilidade completa sobre o que os outros estavam fazendo, e o resultado financeiro emergiu como uma soma \emph{a posteriori} de planos parciais. Embora a saída final pareça viável à primeira vista, uma análise cuidadosa das planilhas dos três cenários revela inconsistências verificáveis com o enunciado --- não erros de cálculo, mas violações estruturais de restrições obrigatórias do problema, descritas a seguir.
+
+A primeira falha refere-se à restrição da linha de produção (R10). O enunciado especifica que cada fábrica opera em linha sequencial, com duas máquinas em série (RA seguida de RB em F$_1$, e RC seguida de RD em F$_2$). Isso significa que ativar a linha implica acionar e pagar o custo fixo das duas máquinas conjuntamente, e que a mesma unidade produzida atravessa as duas em sequência. No entanto, o custo fixo de \rs1.500 reportado pelo Grupo~1 em todos os cenários corresponde a apenas três ativações isoladas ao longo do horizonte (RA + RC no período 1, e RC no período 2), o que só seria possível tratando as máquinas como recursos paralelos --- premissa incompatível com a estrutura física da linha. O valor correto, considerando a ativação em pares, seria de no mínimo \rs2.000.
+
+A segunda falha é uma violação de lote (R11), específica do cenário otimista. O enunciado fixa o lote mínimo de produção de $Y_1$ em 5 unidades, o que significa que qualquer plano viável deve ter produção de $Y_1$ em múltiplos de 5 (0, 5, 10, 15, ...). A planilha do cenário otimista, no entanto, indica produção de $Y_1 = 11$ unidades em F$_1$/RA no período 1 --- valor que não é múltiplo de 5 e portanto não corresponde a nenhuma combinação de lotes possíveis.
+
+A terceira falha é uma violação do estoque de segurança (R5), também no cenário otimista. O enunciado estabelece que o estoque final em cada local e produto deve ser de no mínimo 10 unidades em todo período, como reserva contra incertezas de demanda. No entanto, o saldo final reportado em DC$_2$ para o produto $Y_2$ no período 2 é zero, deixando o centro de distribuição sem qualquer estoque de segurança ao fim do horizonte.
+
+A Tabela~\ref{tab:baseline-p1} sintetiza os indicadores das três DREs do Grupo~1 e serve de baseline para a comparação na Seção~\ref{sec:resultados}.
+
+\begin{table}[h]
+\centering
+\caption{Plano transacional da Parte 1 (Grupo 1) — indicadores reais extraídos das planilhas de cenário.}
+\label{tab:baseline-p1}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Indicador (\rs)} & \textbf{Mais Provável} & \textbf{Otimista} & \textbf{Pessimista} \\
+\midrule
+Receita líquida                 & 10.640 & 11.970 & 8.930 \\
+Custo de aquisição (compras)    & 330    & 1.090  & 13    \\
+Custo variável de produção      & 2.150  & 2.050  & 1.400 \\
+Custo logístico                 & 2.580  & 2.800  & 2.080 \\
+Custo de estoque                & 84     & 86     & 82    \\
+Custo fixo de produção          & 1.500\,$^\dagger$ & 1.500\,$^\dagger$ & 1.500\,$^\dagger$ \\
+Custo de capacidade extra       & 0      & 0      & 0     \\
+\textbf{Lucro operacional (Cálculos)} & \textbf{3.996} & \textbf{4.444} & \textbf{3.855} \\
+Lucro operacional (Respostas)   & 5.239  & 5.587  & 3.855 \\
+Demanda atendida                & 100\,\% & 100\,\% & 100\,\% \\
+\bottomrule
+\multicolumn{4}{l}{\footnotesize $^\dagger$ Valor viola R10 (linha exige ativação em pares — valor correto seria $\geq \rs 2.000$).}
+\end{tabular}
+\end{table}
+
+\subsection{Objetivos e escopo}
+(i)~Formular o problema como modelo de programação linear inteira-mista (MILP) cobrindo todas as restrições do enunciado.
+(ii)~Resolver o modelo para os três cenários de demanda.
+(iii)~Apresentar os resultados de forma integrada e rastreável.
+(iv)~Avaliar a maturidade do processo S\&OP atual e propor um roadmap de evolução com implantação de sistemas.
+
+\medskip\noindent
+\emph{Reflexão preliminar — como modelos de programação matemática podem contribuir nesse processo?} A construção manual em planilhas, característica da Parte 1, leva os sub-times a tomarem decisões sequenciais e locais: o time de compras decide quanto comprar antes de saber quanto a produção precisará, o time de produção define o plano sem informação completa sobre logística, e o resultado financeiro emerge como uma consolidação \emph{a posteriori}. Esse procedimento é frágil porque depende de revisões manuais sucessivas para checar se cada restrição do enunciado foi respeitada, abrindo espaço para erros sistemáticos como os observados na Tabela~\ref{tab:baseline-p1}.
+
+A formalização matemática inverte essa lógica. Ao expressar o problema como um MILP, todas as restrições do enunciado deixam de ser checagens posteriores e passam a ser obrigações construtivas — o solver simplesmente não devolve uma solução que viole R10, R11 ou R5, por exemplo. Em vez de uma sequência de decisões locais que precisam ser conciliadas, o modelo trata compras, produção, estoques, transporte e finanças como variáveis acopladas de um único problema de otimização global, encontrando o conjunto de decisões que maximiza o lucro respeitando todas as restrições simultaneamente. O plano resultante é reprodutível: dados os mesmos parâmetros de entrada, qualquer execução do solver retorna a mesma solução, eliminando a variabilidade humana inerente ao processo manual. Além disso, a estrutura do modelo habilita análises que seriam inviáveis em planilhas, como sensibilidade a parâmetros, comparação automática de cenários e replanejamento rápido quando a demanda muda. Em síntese, a programação matemática transforma o S\&OP de um exercício de conciliação em um exercício de otimização auditável.
+
+% =====================================================================
+\section{Método}
+\label{sec:metodo}
+
+\subsection{Abordagem geral}
+O problema é uma instância clássica de planejamento de cadeia de suprimentos multi-elo, multi-período, que admite formulação como modelo de \textbf{programação linear inteira-mista (MILP)}. A formulação adotada estende o modelo S\&OP descrito em Pochet \& Wolsey~\cite{pochet2006production} e dialoga com formulações de avaliação de flexibilidade em cadeias multiescalão~\cite{almeida2018flexibility}, incorporando restrições específicas do enunciado, como lotes, a linha sequencial RA$\to$RB / RC$\to$RD e a possibilidade de \emph{make-vs-buy}.
+
+\paragraph{Implementação.}
+A formulação é em GMPL (GNU MathProg), resolvida pelo GLPK~\cite{makhorin2015glpk} via a IDE GUSEK. O modelo segue a separação canônica do GMPL em dois tipos de arquivo --- estrutura (\texttt{.mod}) e dados (\texttt{.dat}) --- de modo que um único modelo serve aos três cenários:
+\begin{itemize}
+  \item \texttt{sop\_milp.mod} --- declarações de conjuntos, parâmetros, variáveis, função objetivo e as 14 famílias de restrições. Genérico, independe dos números do cenário.
+  \item \texttt{cenario\_mais\_provavel.dat} --- dados do cenário de demanda mais provável (fator $1{,}00$).
+  \item \texttt{cenario\_otimista.dat} --- dados do cenário otimista (fator $1{,}10$, $+10\,\%$ de demanda).
+  \item \texttt{cenario\_pessimista.dat} --- dados do cenário pessimista (fator $0{,}80$, $-20\,\%$ de demanda).
+\end{itemize}
+Para rodar no GUSEK: \emph{File $\to$ Open} no \texttt{sop\_milp.mod}, em seguida \emph{Tools $\to$ Use Data File} apontando para o \texttt{.dat} do cenário desejado, e por fim \emph{Tools $\to$ Go} (F5). Para alternar entre cenários basta trocar o \texttt{.dat}, sem reabrir o modelo. Alternativamente, via linha de comando: \texttt{glpsol -m sop\_milp.mod -d cenario\_mais\_provavel.dat -o resultado.txt}. O tempo de resolução é inferior a $10$\,s por cenário em hardware comum.
+
+\subsection{Formulação matemática}
+
+\subsubsection*{Conjuntos e índices}
+$t \in T = \{1,2\}$ (períodos);
+$v \in V = \{V_1, V_2\}$ (fornecedores);
+$f \in F = \{F_1, F_2\}$ (fábricas);
+$d \in D = \{\text{DC}_1, \text{DC}_2\}$ (centros de distribuição);
+$c \in C = \{C_1, C_2\}$ (clientes);
+$y \in Y = \{Y_1, Y_2\}$ (produtos acabados);
+$x \in X = \{X_1, X_2\}$ (componentes);
+$m \in M = \{M_1, M_2\}$ (modais: trem e caminhão);
+$r \in R = \{\text{RA}, \text{RB}, \text{RC}, \text{RD}\}$ (máquinas).
+
+\subsubsection*{Parâmetros}
+Todos os números fixos do enunciado são declarados explicitamente como parâmetros para que o modelo seja parametrizável e auditável sem reescrita.
+
+\begin{table}[H]
+\centering
+\caption{Parâmetros do modelo (valores numéricos lidos de \texttt{arquivo\_base.xlsx}).}
+\label{tab:parametros}
+\small
+\begin{tabular}{p{2.4cm}p{6.0cm}p{4.4cm}p{1.6cm}}
+\toprule
+\textbf{Símbolo} & \textbf{Descrição} & \textbf{Valor / fonte} & \textbf{Aba} \\
+\midrule
+$\text{dem}_{t,c,y}$       & Demanda do cliente $c$ pelo produto $y$ em $t$ & cenário × fator (1,0 / 1,1 / 0,8) & \texttt{vendas} \\
+$p_y$                      & Preço de venda do produto $y$                  & R\$ 100 (Y$_1$), R\$ 95 (Y$_2$) & \texttt{precos} \\
+$\tau_{c,y}$               & Carga tributária sobre a venda                  & 5\,\% por cliente×produto      & \texttt{tax} \\
+$\text{ei}_{loc,p}$        & Estoque inicial                                & 10 unidades                    & \texttt{ei} \\
+$\text{es}_{loc,p,t}$      & Estoque de segurança (mínimo)                  & \textbf{10 un.} (parâmetro)    & \texttt{es} \\
+$\text{em}_{loc,p,t}$      & Estoque máximo                                 & \textbf{100 un.} (parâmetro)   & \texttt{em} \\
+$\text{ef}_{loc,p}$        & Estoque final exigido (último período)         & \textbf{10 un.} (parâmetro)    & \texttt{ef} \\
+$\text{cap}^{\text{in}}_{d,t},\;\text{cap}^{\text{out}}_{d,t}$ & Manuseio máximo do CD (entrada/saída) & 50 un.\ por período          & \texttt{cd\_in},\texttt{cd\_out} \\
+$\text{cap}_{v,f,m}$       & Capacidade do modal por rota                   & 10 (trem M$_1$) / 20 (caminhão M$_2$) & \texttt{modal} \\
+$\text{bom}_{y,x}$         & Lista de materiais (BOM) — qtd.\ de $x$ por unidade de $y$ & Y$_1$ = 2X$_1$+1X$_2$;\; Y$_2$ = 1X$_1$+2X$_2$ & \texttt{bom} \\
+$\text{lote}^Y_{f,y}$      & Lote mínimo de produção                       & 5 (Y$_1$), 1 (Y$_2$)           & \texttt{lote} \\
+$\text{lote}^X_{v,x}$      & \textbf{Lote de compra} (parâmetro)            & \textbf{10 un.} por compra     & \texttt{lote} \\
+$\text{temp}_{f,y,r}$      & Tempo de processo (h/un.)                     & 1 hora/unidade                 & \texttt{temp} \\
+$\text{eff}_{f,r,t}$       & Eficiência da máquina                          & 1,0                            & \texttt{eff} \\
+$\text{rend}_{f,r}$        & Rendimento de produção (unitário; inerte na instância) & 1,0                    & \texttt{rend} \\
+$\text{manut}_{f,r,t}$     & Horas de manutenção (subtraídas da capacidade) & 0 h                            & \texttt{manut} \\
+$\text{cap}^{\text{h}}$    & Capacidade horária total/período/máquina      & 50 h                           & \texttt{cap} \\
+$\text{ex\_cap}_{f,r,t}$   & Horas extras máximas                           & 10 h                           & \texttt{ex\_cap} \\
+$c^{\text{log}}_{o,d,m}$   & Custo logístico por unidade-rota-modal         & lido por aresta                & \texttt{c\_log} \\
+$c^{\text{est}}_{loc,p}$   & Custo de estoque (\rs/un.)                     & 1 a 4 \rs/un.                  & \texttt{c\_est} \\
+$c^{\text{var}}_{f,y}$     & Custo variável de produção (\rs/un.)           & R\$ 10/un.\ a R\$ 25/un.       & \texttt{c\_var} \\
+$c^{\text{fix}}_{f,r}$     & Custo fixo de ativação                         & R\$ 500/máquina/período        & \texttt{fix} \\
+$c^{\text{ex}}_{f,r}$      & Custo de capacidade extra (por unidade produzida em hora extra) & R\$ 100/un.            & \texttt{ex\_cust} \\
+$p^{\text{com}}_{v,p}$     & Preço de compra (componentes e acabados)       & lido por par                   & \texttt{compras} \\
+$\text{disp}_{t,p,v}$      & Disponibilidade no fornecedor (limite superior) & lido por cenário              & \texttt{disp} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection*{Variáveis de decisão}
+\begin{itemize}
+  \item $tx_{t,x,v,f,m} \in \mathbb{Z}_+$: componente $x$ transportado de $v$ para $f$ via modal $m$ no período $t$.
+  \item $ty_{t,y,o,d,m} \in \mathbb{Z}_+$: produto acabado $y$ transportado nos arcos $F{\to}CD$, $CD{\to}C$ e $V{\to}F$.
+  \item $cb^X_{t,x,v}, cb^Y_{t,y,v} \in \mathbb{Z}_+$: quantidades compradas (componente e acabado) do fornecedor $v$.
+  \item $pr_{t,f,y,r} \in \mathbb{Z}_+$: produção do produto $y$ na máquina $r$ da fábrica $f$ no período $t$.
+  \item $a_{t,f,r}, \text{aLine}_{t,f} \in \{0,1\}$: ativação binária de máquina individual e da linha de produção.
+  \item $ex_{t,f,r} \in \mathbb{R}_+$: horas extras solicitadas na máquina ($0 \leq ex \leq \text{ex\_cap}$).
+  \item $\text{if}^X_{t,f,x},\;\text{if}^Y_{t,f,y},\;\text{icd}_{t,d,y} \in \mathbb{R}_+$: estoques finais (componentes na fábrica, acabados na fábrica, acabados no CD).
+  \item $n_{t,c,y} \in \mathbb{Z}_+$: quantidade não atendida (existe somente na versão com penalidade; ausente na variante \emph{sem Big~M}).
+\end{itemize}
+
+\subsubsection*{Função objetivo (lucro operacional)}
+\begin{equation}
+\max\; Z \;=\; R \;-\; \bigl(C_{\text{compra}} + C_{\text{log}} + C_{\text{var}} + C_{\text{fixo}} + C_{\text{extra}} + C_{\text{est}}\bigr) \;-\; M \sum_{t,c,y} n_{t,c,y}
+\label{eq:objetivo}
+\end{equation}
+
+\noindent Cada termo é detalhado abaixo de modo que cada parcela contábil seja rastreável a partir das variáveis de decisão (\emph{onde o dinheiro entra e onde sai}).
+
+{\small
+\begin{align*}
+R               &= \sum_{t,c,y}\bigl(\text{dem}_{t,c,y} - n_{t,c,y}\bigr)\cdot p_y \cdot (1-\tau_{c,y}) \quad \text{(receita líquida de impostos)} \\[2pt]
+C_{\text{compra}}&= \sum_{t,x,v} cb^X_{t,x,v}\cdot p^{\text{com}}_{v,x} \;+\; \sum_{t,y,v} cb^Y_{t,y,v}\cdot p^{\text{com}}_{v,y} \\[2pt]
+C_{\text{log}}  &= \underbrace{\sum_{t,x,v,f,m} tx_{t,x,v,f,m}\cdot c^{\text{log}}_{v,f,m}}_{\text{X em } V{\to}F}
+                 +\underbrace{\sum_{t,y,v,f,m} ty^{V\to F}_{t,y,v,f,m}\cdot c^{\text{log}}_{v,f,m}}_{\text{Y comprado em } V{\to}F} \\
+                & +\underbrace{\sum_{t,y,f,d,m} ty_{t,y,f,d,m}\cdot c^{\text{log}}_{f,d,m}}_{F{\to}CD}
+                 +\underbrace{\sum_{t,y,d,c,m} ty_{t,y,d,c,m}\cdot c^{\text{log}}_{d,c,m}}_{CD{\to}C} \\[2pt]
+C_{\text{var}}  &= \sum_{t,f,y} pr_{t,f,y,r_{\text{in}}(f)}\cdot c^{\text{var}}_{f,y} \quad\text{(uma vez por unidade da linha)} \\[2pt]
+C_{\text{fixo}} &= \sum_{t,f,r} a_{t,f,r}\cdot c^{\text{fix}}_{f,r} \\[2pt]
+C_{\text{extra}}&= \sum_{t,f,r} ex_{t,f,r}\cdot c^{\text{ex}}_{f,r} \quad\text{(R\$ 100 por unidade extra; }\text{temp}=1\Rightarrow\text{R\$ 100 por hora extra)} \\[2pt]
+C_{\text{est}}  &= \sum_{t,f,x} \text{if}^X_{t,f,x}\cdot c^{\text{est}}_{f,x}
+                 +\sum_{t,f,y} \text{if}^Y_{t,f,y}\cdot c^{\text{est}}_{f,y}
+                 +\sum_{t,d,y} \text{icd}_{t,d,y}\cdot c^{\text{est}}_{d,y}
+\end{align*}
+}
+
+\noindent\textbf{Sobre o termo Big~M.} A penalidade $M\sum n_{t,c,y}$ com $M = 10^4$ é uma técnica clássica para \emph{forçar} 100\,\% de atendimento sempre que viável, sem inviabilizar o solver quando a demanda excede a capacidade. O modelo principal usa o Big~M como rede de segurança --- se a demanda excede a capacidade em algum cenário futuro, o solver retorna a melhor solução parcial e $n > 0$ indica o gargalo. \textbf{Também executamos uma variante \emph{sem Big~M}}, na qual a R1 vira igualdade estrita $\sum_{d,m} ty_{t,y,d,c,m} = \text{dem}_{t,c,y}$ e $n$ é forçada a 0. Nos três cenários estudados, ambas as variantes retornaram \emph{Optimal} com os mesmos lucros, evidenciando que o Big~M não está ``mascarando'' uma infactibilidade --- a demanda é integralmente atendível.
+
+\noindent\textbf{Sobre o custo logístico (\boldmath$C_{\text{log}}$).} Cada termo do somatório é o produto de três fatores: (i)~\emph{fluxo} (variável $tx$ ou $ty$), (ii)~\emph{rota} (par origem-destino, ex.\ $V_1{\to}F_2$), e (iii)~\emph{modal} (M$_1$ ou M$_2$). O parâmetro $c^{\text{log}}_{o,d,m}$ é, portanto, indexado pela combinação rota$\times$modal, garantindo que escolhas como ``levar X$_1$ de V$_1$ a F$_2$ por trem'' tenham custo distinto de ``levar X$_2$ de V$_2$ a F$_1$ por caminhão''. Exemplo numérico: no plano otimizado mais provável, o trecho $F_2{\to}DC_1$ transporta 50 unidades de Y$_1$ por M$_2$ (caminhão) a R\$ 25/un., contribuindo com R\$ 1.250 a $C_{\text{log}}$.
+
+\subsubsection*{Restrições}
+A lista abaixo apresenta cada restrição em notação algébrica seguida de \emph{uma descrição textual} do que ela impõe na operação real. Onde valores numéricos aparecem, eles correspondem aos parâmetros da Tabela~\ref{tab:parametros} e não a literais.
+
+\medskip
+\noindent\textbf{R1 — Atendimento de demanda.}
+\begin{equation}
+\sum_{d,m} ty_{t,y,d,c,m} \;+\; n_{t,c,y} \;=\; \text{dem}_{t,c,y} \qquad \forall\,t,c,y
+\label{eq:R1}
+\end{equation}
+\emph{Descrição.} Para cada par cliente-produto e cada período, o que chega aos clientes (vindo de qualquer CD por qualquer modal) somado à eventual quantidade não-entregue $n$ deve igualar a demanda. Na variante \emph{sem Big~M}, $n \equiv 0$ e essa restrição vira igualdade estrita ($\sum ty = \text{dem}$).
+
+\medskip
+\noindent\textbf{R2 — Capacidade do modal por rota (compartilhada entre X e Y).}
+\begin{equation}
+\sum_{x} tx_{t,x,v,f,m} \;+\; \sum_{y} ty^{V\to F}_{t,y,v,f,m} \;\leq\; \text{cap}_{v,f,m} \qquad \forall\,t,v,f,m
+\label{eq:R2}
+\end{equation}
+\emph{Descrição.} O modal $m$ na rota $v{\to}f$ tem capacidade $\text{cap}_{v,f,m}$ (10 un.\ para trem M$_1$, 20 un.\ para caminhão M$_2$). Componentes e acabados \emph{somam} no mesmo veículo. Análogas valem para as rotas $F{\to}CD$ e $CD{\to}C$.
+
+\medskip
+\noindent\textbf{R3 e R4 — Manuseio de entrada e saída do CD.}
+\begin{align}
+\sum_{y,f,m} ty_{t,y,f,d,m} &\;\leq\; \text{cap}^{\text{in}}_{d,t} \qquad \forall\,t,d \label{eq:R3}\\
+\sum_{y,c,m} ty_{t,y,d,c,m} &\;\leq\; \text{cap}^{\text{out}}_{d,t} \qquad \forall\,t,d \label{eq:R4}
+\end{align}
+\emph{Descrição.} Cada CD movimenta até 50 unidades de entrada e 50 de saída por período (parâmetro). Garante que o fluxo passando pelo CD respeita sua taxa operacional, evitando ``empilhar'' produto sem capacidade de movimentação.
+
+\medskip
+\noindent\textbf{R5 — Estoque de segurança (mínimo).}
+\begin{equation}
+\text{if}^X_{t,f,x},\; \text{if}^Y_{t,f,y},\; \text{icd}_{t,d,y} \;\geq\; \text{es}_{loc,p,t} \qquad \forall\,t,loc,p
+\label{eq:R5}
+\end{equation}
+\emph{Descrição.} Estoque final em cada local-produto-período deve ser $\geq$ ao mínimo $\text{es}$ (parâmetro $= 10$ un.). Cobre incertezas de demanda e atrasos logísticos sem ficar exposto a ruptura.
+
+\medskip
+\noindent\textbf{R6 — Estoque máximo.}
+\begin{equation}
+\text{if}^X_{t,f,x},\; \text{if}^Y_{t,f,y},\; \text{icd}_{t,d,y} \;\leq\; \text{em}_{loc,p,t} \qquad \forall\,t,loc,p
+\label{eq:R6}
+\end{equation}
+\emph{Descrição.} O estoque não pode exceder $\text{em}$ (parâmetro $= 100$ un.) — limite físico de armazenagem e gestão de capital empatado.
+
+\medskip
+\noindent\textbf{R7 — Estoque final exigido no horizonte.}
+\begin{equation}
+\text{if}^X_{T,f,x},\; \text{if}^Y_{T,f,y},\; \text{icd}_{T,d,y} \;\geq\; \text{ef}_{loc,p} \qquad \forall\,loc,p
+\label{eq:R7}
+\end{equation}
+\emph{Descrição.} No último período $T$, o estoque final precisa estar acima do parâmetro $\text{ef}$ ($= 10$ un.) — encerra o horizonte com o mesmo nível mínimo do início, evitando ``rouba-Pedro-paga-Paulo'' que viole período seguinte.
+
+\medskip
+\noindent\textbf{R8 — Balanço de estoque (conservação).}
+\begin{equation}
+\text{EF}_{t} \;=\; \text{EI}_{t-1} \;+\; \text{entradas}_{t} \;-\; \text{saídas}_{t}
+\label{eq:R8}
+\end{equation}
+\emph{Descrição.} Para cada local e produto, o estoque final do período é o estoque do período anterior (com $\text{EI}_0 = \text{ei}_{loc,p}$) mais entradas (transporte e produção) menos saídas (consumo ou despacho). Garante \emph{conservação de massa} ao longo do horizonte. O consumo de componentes na produção aparece via R\_BOM.
+
+\medskip
+\noindent\textbf{R\_BOM — Lista de materiais (consumo de componentes).}
+\begin{equation}
+\text{consumo}_{t,f,x} \;=\; \sum_{y,r}\, pr_{t,f,y,r_{\text{in}}(f)} \cdot \text{bom}_{y,x} \qquad \forall\,t,f,x
+\label{eq:Rbom}
+\end{equation}
+\emph{Descrição.} Toda unidade produzida de $y$ consome $\text{bom}_{y,x}$ unidades do componente $x$. No problema, $Y_1 = 2 \cdot X_1 + 1 \cdot X_2$ e $Y_2 = 1 \cdot X_1 + 2 \cdot X_2$. O consumo é cobrado uma única vez na entrada da linha sequencial ($r_{\text{in}}$ = RA em F$_1$, RC em F$_2$), pois a mesma unidade percorre toda a linha. Essa restrição alimenta o ``$-\text{saídas}$'' da R8 para X.
+
+\medskip
+\noindent\textbf{R9 — Capacidade horária da máquina.}
+\begin{equation}
+\sum_{y} pr_{t,f,y,r}\cdot \text{temp}_{y,r} \;\leq\; \bigl(\text{cap}^{\text{h}} - \text{manut}_{f,r,t}\bigr)\cdot \text{eff}_{f,r,t}\cdot a_{t,f,r} \;+\; ex_{t,f,r}
+\label{eq:R9}
+\end{equation}
+\emph{Descrição.} O total de horas usadas na máquina $r$ é o tempo de processo por unidade vezes a quantidade produzida. Esse total deve ser menor ou igual à capacidade horária $\text{cap}^{\text{h}}$ (50 h/período) descontada da manutenção e multiplicada pela eficiência, condicionada à ativação $a$. Capacidade extra $ex$ (limitada por $\text{ex\_cap} = 10$ unidades) pode ser contratada com sobrecusto de \textbf{R\$ 100 por unidade produzida em hora extra}; como $\text{temp}_{f,y,r} = 1$ h/un., esse valor equivale numericamente a R\$ 100 por hora extra. O rendimento de produção (parâmetro \texttt{rend}) é unitário ($1,0$) nesta instância --- não há perda de processo ---, ficando absorvido na eficiência; por isso não aparece explicitamente multiplicando a capacidade.
+
+\medskip
+\noindent\textbf{R10a — Ativação conjunta da linha de produção.}
+\begin{equation}
+a_{t,F_1,RA} = a_{t,F_1,RB} = \text{aLine}_{t,F_1};\;\; a_{t,F_2,RC} = a_{t,F_2,RD} = \text{aLine}_{t,F_2}
+\label{eq:R10a}
+\end{equation}
+\emph{Descrição.} Como a fábrica opera em linha (RA$\to$RB em F$_1$ e RC$\to$RD em F$_2$), \emph{ativar a linha} significa ativar as duas máquinas juntas e, portanto, pagar custo fixo por ambas. Corrige a violação observada na Parte~1, em que se pagou custo fixo de apenas uma das máquinas da linha.
+
+\medskip
+\noindent\textbf{R10b — Fluxo sequencial RA$\to$RB / RC$\to$RD.}
+\begin{equation}
+pr_{t,F_1,y,RA} = pr_{t,F_1,y,RB};\;\; pr_{t,F_2,y,RC} = pr_{t,F_2,y,RD} \qquad \forall\,t,y
+\label{eq:R10b}
+\end{equation}
+\emph{Descrição.} A peça que sai da primeira máquina (RA/RC) é exatamente a que entra na segunda (RB/RD): o fluxo é \emph{serial}, não paralelo. Sem essa restrição, o modelo trataria as duas máquinas como recursos paralelos e dobraria a capacidade efetiva da linha. Com R10b, a capacidade efetiva fica em $\min(\text{cap}_{RA},\text{cap}_{RB})$ e cada peça consome tempo nas duas máquinas (via R9 aplicada individualmente).
+
+\medskip
+\noindent\textbf{R11 — Lotes inteiros de produção e compra.}
+\begin{equation}
+pr_{t,f,y,r} = \text{lote}^Y_{f,y}\cdot k_1; \quad cb^X_{t,x,v} = \text{lote}^X_{v,x}\cdot k_2; \quad k_1,k_2 \in \mathbb{Z}_+
+\label{eq:R11}
+\end{equation}
+\emph{Descrição.} A produção de $Y_1$ ocorre em \emph{lotes} de $\text{lote}^Y_{f,Y_1} = 5$ unidades; a de $Y_2$ é unitária ($\text{lote}^Y_{f,Y_2}=1$). A compra de cada componente $X_i$ deve ser múltiplo de $\text{lote}^X_{v,x} = 10$ unidades (parâmetro). Restrição corrige a violação observada na Parte~1 ($Y_1 = 11$ no otimista era inválido).
+
+\medskip
+\noindent\textbf{R12 — Disponibilidade do fornecedor.}
+\begin{equation}
+cb^X_{t,x,v} \;\leq\; \text{disp}_{t,x,v}; \quad cb^Y_{t,y,v} \;\leq\; \text{disp}_{t,y,v}
+\label{eq:R12}
+\end{equation}
+\emph{Descrição.} Não se pode comprar de um fornecedor $v$ mais do que sua disponibilidade contratual no período $t$ — limite superior por par período-produto-fornecedor.
+
+\medskip
+\noindent\textbf{R13 — Encadeamento compra $\leftrightarrow$ transporte.}
+\begin{equation}
+cb^X_{t,x,v} = \sum_{f,m} tx_{t,x,v,f,m}; \quad cb^Y_{t,y,v} = \sum_{f,m} ty^{V\to F}_{t,y,v,f,m}
+\label{eq:R13}
+\end{equation}
+\emph{Descrição.} Tudo que é comprado de $v$ é também transportado de $v$ para alguma fábrica — não existe ``compra fantasma'' nem transporte sem compra. Liga as decisões de G1 (compras) com as de G3 (logística).
+
+\medskip
+\noindent\textbf{R14 — Domínio das variáveis.}
+\begin{equation}
+tx,\;ty,\;cb,\;pr,\;n \in \mathbb{Z}_+; \quad a,\;\text{aLine} \in \{0,1\}; \quad ex,\;\text{if},\;\text{icd} \in \mathbb{R}_+
+\label{eq:R14}
+\end{equation}
+\emph{Descrição.} Quantidades físicas são inteiras (não se vende meio barril); ativações são binárias; horas extras e estoques são contínuos não-negativos.
+
+% =====================================================================
+\section{Resultados}
+\label{sec:resultados}
+
+O modelo foi resolvido pelo pacote de código aberto \emph{Gnu Linear Programming Kit (GLPK)}~\cite{makhorin2015glpk}, executado por meio da IDE GUSEK. Os três cenários foram resolvidos individualmente a partir do mesmo arquivo \texttt{sop\_milp.mod}, alternando apenas o arquivo de dados (\texttt{cenario\_mais\_provavel.dat}, \texttt{cenario\_otimista.dat} e \texttt{cenario\_pessimista.dat}). Em todos eles, o solver retornou status \emph{Optimal} em menos de 10\,s, com demanda atendida em 100\,\%. Os parâmetros do problema estão consolidados no \texttt{arquivo\_base.xlsx} e os resultados ótimos por cenário, nas saídas geradas pelo solver e na planilha \texttt{Resultados\_Otimos.xlsx} que acompanha esta entrega.
+
+\subsection{Síntese financeira dos três cenários}
+
+A Tabela~\ref{tab:dre-p2} consolida os resultados financeiros do plano otimizado para os três cenários de demanda.
+
+\begin{table}[h]
+\centering
+\caption{DRE do plano otimizado (Parte 2) nos três cenários.}
+\label{tab:dre-p2}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Indicador (\rs)} & \textbf{Mais Provável} & \textbf{Otimista (+10\,\%)} & \textbf{Pessimista ($-20\,\%$)} \\
+\midrule
+Receita líquida                 & 10.640 & 11.780 & 8.455 \\
+($-$) Custo de compras          & 770    & 1.340  & 1.310 \\
+($-$) Custo logístico           & 3.510  & 3.870  & 2.470 \\
+($-$) Custo variável de produção& 1.900  & 1.900  & 1.500 \\
+($-$) Custo fixo de produção    & 3.000  & 3.000  & 2.000 \\
+($-$) Custo de capacidade extra & 0      & 0      & 0     \\
+($-$) Custo de estoque          & 80     & 80     & 80    \\
+\textbf{(=) Lucro operacional}  & \textbf{1.380} & \textbf{1.590} & \textbf{1.095} \\
+Demanda atendida (un.)          & 112    & 124    & 89    \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent\textbf{Observação} (lucros aderentes ao fluxo sequencial RA$\to$RB). Os lucros (\rs1.380 / \rs1.590 / \rs1.095) refletem o custo \emph{efetivo} da linha em modo sequencial: cada unidade processada consome tempo nas duas máquinas (RA e RB ou RC e RD). A capacidade horária efetiva da linha é portanto $\min(\text{cap}_{\text{RA}}, \text{cap}_{\text{RB}})$, e não a soma. Com a capacidade extra a R\$ 100 por unidade produzida em hora extra (como $\text{temp}_{f,y,r} = 1$ h/un., isso equivale a R\$ 100 por hora extra contratada), o solver \emph{abandona} o uso de hora extra e prefere ativar a segunda linha por mais períodos --- por isso $C_{\text{extra}} = 0$ nos três cenários e $C_{\text{fixo}}$ sobe para \rs3.000 no mais provável.
+
+\medskip
+A Figura~\ref{fig:rcl} sintetiza graficamente receita, custo total e lucro por cenário.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, width=\linewidth, height=6.2cm, bar width=9pt,
+  ylabel={\rs}, ymin=0, enlarge x limits=0.25,
+  symbolic x coords={Mais Provável, Otimista, Pessimista},
+  xtick=data, x tick label style={font=\small},
+  legend style={at={(0.5,1.04)}, anchor=south, legend columns=-1, font=\small},
+  nodes near coords, every node near coord/.append style={font=\tiny, rotate=90, anchor=west},
+]
+\addplot coordinates {(Mais Provável,10640) (Otimista,11780) (Pessimista,8455)};
+\addplot coordinates {(Mais Provável,9260) (Otimista,10190) (Pessimista,7360)};
+\addplot coordinates {(Mais Provável,1380) (Otimista,1590) (Pessimista,1095)};
+\legend{Receita líquida, Custo total, Lucro}
+\end{axis}
+\end{tikzpicture}
+\caption{Receita líquida, custo total e lucro operacional por cenário (plano otimizado da Parte 2).}
+\label{fig:rcl}
+\end{figure}
+
+\medskip
+A Tabela~\ref{tab:dre-mensal} abre a DRE \emph{por período}, atendendo ao requisito do enunciado de apurar o lucro de cada mês. O lucro do primeiro período é negativo nos três cenários porque o plano \emph{antecipa} os custos fixos de ativação e forma estoque (de segurança e final) em P1 para suportar a demanda de P2; consolidado o horizonte de dois meses, o resultado é positivo.
+
+\begin{table}[H]
+\centering
+\caption{DRE mensal (por período P1/P2) do plano otimizado, por cenário.}
+\label{tab:dre-mensal}
+\footnotesize
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{lrrrrrr}
+\toprule
+ & \multicolumn{2}{c}{\textbf{Mais Provável}} & \multicolumn{2}{c}{\textbf{Otimista}} & \multicolumn{2}{c}{\textbf{Pessimista}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+\textbf{Indicador (\rs)} & \textbf{P1} & \textbf{P2} & \textbf{P1} & \textbf{P2} & \textbf{P1} & \textbf{P2} \\
+\midrule
+Receita líquida            & 5.035 & 5.605 & 5.510 & 6.270 & 3.990 & 4.465 \\
+($-$) Compras              & 450   & 320   & 450   & 890   & 560   & 750   \\
+($-$) Logística            & 2.030 & 1.480 & 2.080 & 1.790 & 1.660 & 810   \\
+($-$) Variável de produção & 1.550 & 350   & 1.550 & 350   & 1.500 & 0     \\
+($-$) Fixo de produção     & 2.000 & 1.000 & 2.000 & 1.000 & 2.000 & 0     \\
+($-$) Capacidade extra     & 0     & 0     & 0     & 0     & 0     & 0     \\
+($-$) Estoque              & 40    & 40    & 40    & 40    & 40    & 40    \\
+\textbf{(=) Lucro}         & \textbf{$-$1.035} & \textbf{2.415} & \textbf{$-$610} & \textbf{2.200} & \textbf{$-$1.770} & \textbf{2.865} \\
+Demanda atendida (un.)     & 53 & 59 & 58 & 66 & 42 & 47 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Análise comparativa Parte 1 vs Parte 2}
+
+A Tabela~\ref{tab:comparativo} compara, ponto a ponto, o plano transacional da Parte 1 (Grupo 1, Tabela~\ref{tab:baseline-p1}) com o plano otimizado da Parte 2 (Tabela~\ref{tab:dre-p2}).
+
+\begin{table}[h]
+\centering
+\caption{Comparativo direto: plano transacional (Parte 1) vs plano analítico (Parte 2).}
+\label{tab:comparativo}
+\small
+\begin{tabular}{p{4.6cm}p{4.8cm}p{4.8cm}c}
+\toprule
+\textbf{Aspecto} & \textbf{Plano transacional (Parte 1)} & \textbf{Plano otimizado (Parte 2)} & \textbf{Restr.} \\
+\midrule
+Lotes de produção           & VIOLA — $Y_1 = 11$ (otimista)        & $pr = \text{lote}\cdot k$ por construção & R11 \\
+Linha RA$\to$RB / RC$\to$RD & VIOLA — só 3 máquinas isoladas       & Ambas as máquinas da linha ativadas & R10 \\
+Custo fixo (mais provável)  & \rs1.500 (3 ativações)               & \rs3.000 (6 ativações em pares) & R10 \\
+Custo logístico (m.\ prov.) & \rs2.580                              & \rs3.510                              & — \\
+Integração entre estágios   & Múltiplos planos paralelos            & Plano único integrado                 & R8, R13 \\
+Demanda atendida            & 100\,\% reportado                     & 100\,\% verificado ($n=0$)            & R1 \\
+Consistência interna        & DIVERGE: Cálculos vs Respostas        & Único valor por cenário               & — \\
+Lucro (mais provável)       & \rs3.996 / \rs5.239 (divergem)        & \textbf{\rs1.380} (auditável)        & — \\
+Lucro (otimista)            & \rs4.444 / \rs5.587                   & \textbf{\rs1.590}                     & — \\
+Lucro (pessimista)          & \rs3.855                              & \textbf{\rs1.095}                     & — \\
+Tempo de re-planejamento    & Horas (manual)                        & Segundos (solver)                     & — \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Embora os lucros reportados pelo Grupo~1 sejam superiores ao otimizado, eles \emph{repousam sobre violações documentadas} (R10, R11, R5). Ao recomputar o lucro do Grupo~1 acrescentando o custo fixo da linha (\rs 500 a \rs 1.500 a mais), o valor real cai para a faixa de \rs 2.500 a \rs 3.500. Adicionalmente, o plano otimizado adotou uma decisão \emph{make-vs-buy} diferente: em vez de ativar a segunda linha em $P_2$, comprou 37 unidades de produto acabado dos fornecedores (\rs1.700) para economizar o custo fixo das duas linhas (\rs2.000) — trade-off que a equipe manual não conseguia avaliar.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, width=\linewidth, height=6cm, bar width=16pt,
+  ylabel={Lucro (\rs)}, ymin=0, enlarge x limits=0.3,
+  symbolic x coords={Mais Provável, Otimista, Pessimista},
+  xtick=data, x tick label style={font=\small},
+  legend style={at={(0.5,1.04)}, anchor=south, legend columns=-1, font=\small},
+  nodes near coords, every node near coord/.append style={font=\tiny},
+]
+\addplot coordinates {(Mais Provável,3996) (Otimista,4444) (Pessimista,3855)};
+\addplot coordinates {(Mais Provável,1380) (Otimista,1590) (Pessimista,1095)};
+\legend{{Parte 1 (reportado, c/ violações)}, {Parte 2 (otimizado, auditável)}}
+\end{axis}
+\end{tikzpicture}
+\caption{Lucro operacional: plano transacional da Parte 1 (valores ``Cálculos'', apoiados em violações de R10/R11/R5) vs plano otimizado da Parte 2.}
+\label{fig:p1p2}
+\end{figure}
+
+\subsection{Verificação: checklist do enunciado}
+O enunciado propõe sete perguntas de verificação dos planos. No modelo MILP, cada uma é satisfeita \emph{por construção} (restrição obrigatória), e não como conferência posterior à planilha. A Tabela~\ref{tab:checklist} mapeia cada pergunta à restrição que a garante.
+
+\begin{table}[H]
+\centering
+\caption{Checklist de verificação do enunciado mapeado às restrições do modelo.}
+\label{tab:checklist}
+\small
+\begin{tabular}{p{0.6cm}p{11.0cm}p{2.7cm}}
+\toprule
+\textbf{\#} & \textbf{Pergunta de verificação} & \textbf{Garantido por} \\
+\midrule
+1 & Os lotes múltiplos de compras e produção foram respeitados? & R11 \\
+2 & Os consumos das matérias-primas seguem a proporção da BOM? & R\_BOM \\
+3 & O consumo de tempo na produção não extrapola as horas disponíveis? & R9 \\
+4 & As eficiências e rendimentos são aplicados à produção? & R9 (\texttt{eff}, \texttt{rend}) \\
+5 & Os estoques de segurança, máximos e final são respeitados? & R5, R6, R7 \\
+6 & As capacidades de transporte em cada link e modal são respeitadas? & R2 \\
+7 & As capacidades de manuseio de entrada e saída nos CDs são respeitadas? & R3, R4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\section{Discussão}
+\label{sec:discussao}
+
+\subsection{Maturidade S\&OP — modelo de Lapide}
+Adotamos o modelo de quatro estágios de Lapide~\cite{lapide2004partI,lapide2004partII,lapide2005partIII}, referenciado pela APICS/ASCM. A Tabela~\ref{tab:lapide} resume os estágios.
+
+\begin{table}[h]
+\centering
+\caption{Matriz de maturidade S\&OP (adaptado de Lapide, 2004–2005).}
+\label{tab:lapide}
+\begin{tabular}{lp{4.0cm}p{3.4cm}p{3.5cm}}
+\toprule
+\textbf{Estágio} & \textbf{Processo} & \textbf{Tomada de decisão} & \textbf{Sistema} \\
+\midrule
+1 — Marginal   & silos; ad-hoc; sem ferramenta & reativo & planilhas isoladas \\
+2 — Rudimentar & reuniões mensais; manual & previsão básica & planilhas integradas \\
+3 — Clássico   & ciclo S\&OP formal; multifuncional & previsão estatística & APS / ERP integrado \\
+4 — Ideal      & IBP em tempo real; colaborativo & otimização integrada & plataforma com IA/ML \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Diagnóstico: a empresa hoje se encontra no \textbf{Estágio 2 (Rudimentar)} com elementos do Estágio 1 — processo periódico, mas manual em planilhas, com silos por sub-time funcional. O resultado da Parte 1 (violações R10, R11, R5 e divergências internas) corrobora o diagnóstico.
+
+\textbf{Estágio recomendado:} evolução para o Estágio 3 (Clássico) em horizonte de 6 a 12 meses. O salto direto para o Estágio 4 não é recomendado: requer maturidade processual prévia, dados estruturados e cultura analítica que ainda estão em formação.
+
+\subsection{Escolha racional vs racionalidade limitada}
+A literatura de teoria da decisão organizacional, especialmente o Capítulo 13 de Shapiro~\cite{shapiro2006modeling}, apresenta duas perspectivas opostas sobre como indivíduos decidem em organizações --- e ambas iluminam aspectos diferentes do problema enfrentado pela empresa de bioetanol.
+
+\paragraph{Escolha racional.} A perspectiva da escolha racional, herdada da economia clássica e da teoria normativa da decisão, parte da hipótese de que o decisor é um agente plenamente informado e cognitivamente ilimitado. Sob essa lente, decidir é executar uma rotina bem definida: (i) enumerar exaustivamente todas as alternativas disponíveis; (ii) avaliar com precisão as consequências de cada uma à luz de uma função de utilidade conhecida; (iii) ordenar essas alternativas segundo uma relação de preferência consistente, transitiva e estável; e (iv) escolher a opção que maximiza a utilidade esperada. É exatamente essa a premissa que sustenta a formulação MILP deste trabalho: variáveis bem definidas, função objetivo única, restrições obrigatórias e um solver que percorre o espaço de soluções viáveis em busca do ótimo global. Sob essa perspectiva, o papel da tecnologia é direto: o APS substitui o julgamento humano pelo cálculo do solver e elimina o erro decisório por construção.
+
+\paragraph{Racionalidade limitada.} A perspectiva oposta, formulada por Herbert Simon na década de 1950 e premiada com o Nobel de Economia em 1978, sustenta que decisores reais nunca operam nas condições idealizadas acima. Em primeiro lugar, eles não dispõem de informação completa: a demanda futura, a eficiência das máquinas e a disponibilidade dos fornecedores são estimativas sujeitas a erro, e nem todas as alternativas relevantes são conhecidas ou conhecíveis no momento da decisão. Em segundo, a capacidade cognitiva humana de enumerar e comparar alternativas é limitada --- ninguém consegue avaliar mentalmente milhões de combinações de compra, produção, estoque e transporte. Em terceiro, o tempo disponível para decidir é restrito e as decisões frequentemente precisam ser tomadas antes que toda a informação esteja disponível. Diante desses limites, o decisor real abandona a busca pelo ótimo e adota uma estratégia que Simon denominou \emph{satisficing}: estabelece um nível mínimo de aspiração (um lucro aceitável, um custo tolerável, um nível de serviço suficiente) e escolhe a primeira alternativa encontrada que atinja esse patamar. Essa lente explica de forma natural por que a Parte 1 produziu um plano com violações --- não por incompetência do Grupo~1, mas porque a heurística de decisão sequencial e local é a resposta cognitivamente viável ao volume e à interdependência do problema.
+
+\paragraph{Implicações práticas.} As duas perspectivas não são mutuamente excludentes; cada uma resolve uma parte do problema. O modelo MILP supera a limitação cognitiva ao computar o ótimo que o decisor humano não alcança, mas herda a fragilidade da informação incompleta: um plano ``ótimo'' para parâmetros errados pode ser pior do que um plano \emph{satisficing} robusto. A recomendação consistente com essa leitura é tratar o MILP como um amplificador da racionalidade humana, não como substituto: o solver gera alternativas, projeta cenários e quantifica trade-offs, enquanto o decisor mantém julgamento sobre quais premissas adotar, quando recalibrar parâmetros e como interpretar o resultado à luz do contexto operacional. Essa divisão de trabalho entre máquina e humano é a base do roadmap proposto na próxima seção.
+
+\subsection{Roadmap de implementação}
+A evolução do Estágio 2 (Rudimentar) para o Estágio 3 (Clássico) do modelo de Lapide pressupõe um plano de implantação faseado, com atividades sequenciais que constroem capacidade analítica antes de instalar a ferramenta. A Tabela~\ref{tab:roadmap} resume as quatro fases sugeridas.
+
+\begin{table}[h]
+\centering
+\caption{Roadmap de implantação do APS em quatro fases.}
+\label{tab:roadmap}
+\small
+\begin{tabular}{p{2.3cm}p{1.6cm}p{6.4cm}p{3.8cm}}
+\toprule
+\textbf{Fase} & \textbf{Duração} & \textbf{Atividades-chave} & \textbf{Entregável} \\
+\midrule
+1 — Diagnóstico & 0–1 mês & mapear processos atuais de S\&OP; consolidar parâmetros; auditar qualidade de dados & documentação e gaps \\
+2 — Desenho     & 1–3 m   & definir ciclo S\&OP mensal; padronizar templates; selecionar APS adequado & arquitetura aprovada \\
+3 — Piloto      & 3–6 m   & implantar MILP em produção; rodar 2 ciclos paralelos; treinar as áreas envolvidas & 1\textsuperscript{o} ciclo S\&OP completo \\
+4 — Rollout     & 6–12 m  & oficializar; substituir o legado em planilhas; dashboard de KPIs; previsão estatística & Estágio 3 consolidado \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Detalhamento das atividades-chave.}
+A \emph{Fase 1 (Diagnóstico)} dedica o primeiro mês a entender o estado atual antes de propor mudanças. O mapeamento de processos identifica quem decide cada parte do plano hoje, em que momento do mês cada decisão é tomada e como as informações fluem entre os sub-times. A consolidação de parâmetros reúne em uma fonte única todos os dados que hoje vivem dispersos em planilhas pessoais (preços de compra, capacidades, tempos de processo, custos logísticos), gerando o equivalente ao \texttt{arquivo\_base.xlsx} usado neste trabalho. A auditoria de dados verifica a consistência e a atualidade desses números, marcando como ``vermelhos'' os parâmetros que não têm dono ou que estão desatualizados --- é nessa etapa que a empresa descobre, por exemplo, que a capacidade nominal das máquinas registrada no ERP difere da capacidade efetiva observada no chão de fábrica.
+
+A \emph{Fase 2 (Desenho)} usa o diagnóstico para projetar o novo ciclo S\&OP. Define-se o calendário mensal (em que semana cada reunião acontece, quem participa, qual é o pacote de informação consumido em cada uma) e padronizam-se os templates de entrada e saída, garantindo que todos os sub-times falem a mesma linguagem. Em paralelo, a empresa avalia as opções de APS no mercado --- desde soluções abertas como GLPK e CBC até comerciais como Gurobi, CPLEX, SAP IBP ou Anaplan --- e seleciona a que melhor encaixa no tamanho do problema, no orçamento e na maturidade do time. O entregável desta fase é uma arquitetura aprovada pela diretoria, com escopo, custo e prazo.
+
+A \emph{Fase 3 (Piloto)} é a primeira execução do modelo em ambiente produtivo. O MILP é implantado e roda em paralelo ao processo legado por pelo menos dois ciclos mensais completos, gerando dois planos --- um por planilha, outro pelo solver --- que são reconciliados em reunião. Essa execução dupla expõe divergências, força revisão de premissas e treina as áreas a interpretar a saída do modelo (o que muda no plano quando o custo logístico sobe? quando a capacidade da fábrica cai?). Ao final, a empresa tem evidência empírica de que o novo processo funciona e cultura suficiente para o próximo passo.
+
+A \emph{Fase 4 (Rollout)} oficializa o novo ciclo e desativa o legado. O dashboard de KPIs --- aderência ao plano, lucro realizado vs.\ planejado, nível de serviço, giro de estoque --- passa a ser o instrumento de monitoramento. A previsão estatística (séries temporais, regressão, métodos de \emph{forecasting}) substitui as estimativas ad-hoc de demanda, fechando o ciclo S\&OP descrito por Lapide. Com isso, a empresa consolida o Estágio 3.
+
+\subsection{Riscos e mitigação}
+A implantação de um APS sustentado por um modelo MILP é tecnicamente viável, mas envolve riscos organizacionais, técnicos e culturais que precisam ser endereçados explicitamente para que o projeto não fracasse. A seguir, descrevem-se os quatro principais riscos identificados e as estratégias de mitigação correspondentes.
+
+O primeiro e mais crítico é o risco de \emph{qualidade dos dados}. Um modelo de otimização é tão bom quanto os parâmetros que recebe: se a capacidade nominal das máquinas estiver desatualizada, se o custo logístico estiver agregado de forma incorreta, ou se a disponibilidade dos fornecedores estiver registrada com erro, o solver devolverá um plano matematicamente ótimo mas operacionalmente inviável --- e a empresa rapidamente perderá confiança na ferramenta. A mitigação consiste em tratar a governança de dados como pré-requisito (não consequência) da implantação: a Fase~1 do roadmap aloca tempo explícito para auditar, consolidar e atribuir donos a cada parâmetro, e o ciclo mensal de S\&OP precisa incluir uma etapa de revisão dos parâmetros antes da execução do solver.
+
+O segundo é a \emph{resistência cultural}. Sub-times acostumados a planejar em planilhas tendem a interpretar a introdução de um solver como ameaça profissional --- a tecnologia que ``substitui o julgamento humano''. Esse temor leva a comportamentos defensivos: questionamento sistemático dos resultados, retenção de informação, sobreposição informal de planos paralelos. A mitigação combina três elementos: rodar o piloto em paralelo ao processo legado (Fase~3) para que as áreas comparem e aprendam sem perder controle; reforçar narrativamente que o solver é instrumento dos sub-times, não substituto deles; e envolver os representantes funcionais desde a Fase~1, para que sintam o modelo como produto coletivo.
+
+O terceiro é a \emph{complexidade excessiva do modelo}. É comum, no entusiasmo inicial, querer incorporar todas as nuances operacionais em uma única formulação --- múltiplas plantas, dezenas de SKUs, restrições contratuais detalhadas, custos não-lineares ---, resultando em um modelo que ninguém entende, que demora horas para resolver e cuja manutenção paralisa a equipe. A mitigação é a disciplina iterativa: começar pelo modelo mínimo viável (como o desta Parte~2, com 14 famílias de restrições e duas plantas), validá-lo em produção e só depois expandir conforme a necessidade real, mantendo sempre a regra de que toda nova restrição precisa ter um caso de uso documentado.
+
+O quarto é a \emph{dependência do solver}. Soluções abertas como GLPK e CBC são gratuitas e adequadas para problemas do porte estudado, mas podem se tornar limitantes quando a instância cresce (mais plantas, mais períodos, mais produtos). Migrar para solvers comerciais como Gurobi ou CPLEX traz ganhos significativos de performance, ao custo de licenças anuais expressivas. A mitigação é planejar a portabilidade desde o início: manter a formulação em GMPL (compatível com múltiplos solvers via interfaces como AMPL), evitar truques específicos de um solver, e tratar a escolha do solver como decisão tática reavaliada a cada ciclo, função do tamanho do problema e do orçamento disponível.
+
+% =====================================================================
+\section{Conclusão}
+
+\paragraph{Retomada do contexto e do que foi feito.}
+A empresa de bioetanol enfrentava receitas em queda (\,$-$20\,\%) e custos crescentes (+10\,\%), com planos funcionais desconectados do plano estratégico --- quadro típico de baixa maturidade S\&OP. Esta Parte 2 propôs como resposta um modelo MILP completo com 14 famílias de restrições, resolvido para os três cenários de demanda e devolvendo um único plano integrado por cenário, com demanda 100\,\% atendida e todas as restrições do enunciado respeitadas, em particular a da linha de produção (R10) que a Parte 1 havia violado.
+
+\paragraph{Recomendações para a implantação prática.}
+A transição entre o plano transacional da Parte 1 e o plano analítico desta Parte 2 não se faz da noite para o dia, e há um conjunto de recomendações operacionais que aumentam a probabilidade de sucesso da implantação. A primeira é tratar a Fase 1 do roadmap (Diagnóstico) como pré-requisito inegociável: sem governança de dados estruturada, a melhor formulação matemática devolve resultados frágeis, e a desconfiança gerada por um único plano ruim costuma ser suficiente para sepultar o projeto inteiro. A segunda é executar o modelo em piloto paralelo ao processo legado por pelo menos dois ciclos completos, de modo que as áreas reconciliem ativamente as duas saídas, identifiquem divergências e construam confiança na ferramenta sem perder controle sobre o plano da empresa. A terceira é preservar a reunião S\&OP humana como instância de reconciliação e ajuste --- o solver computa o ótimo matemático, mas decisões estratégicas, negociações com clientes e julgamentos sobre risco continuam sendo responsabilidade da liderança. A quarta é tratar a escolha entre solver gratuito (GLPK, CBC) e comercial (Gurobi, CPLEX) como decisão tática reavaliada periodicamente, e não como compromisso permanente: o porte do problema da empresa hoje comporta soluções abertas, mas a expansão futura pode justificar o investimento. Por fim, é fundamental sustentar a melhoria contínua com pós-mortem mensal comparando plano otimizado e realizado, alimentando o ciclo seguinte com parâmetros recalibrados e revelando aos poucos os pontos cegos do modelo.
+
+\paragraph{Limitações.}
+O modelo proposto, embora resolva integralmente o problema enunciado, opera sob hipóteses que devem ser reconhecidas explicitamente antes da generalização. A primeira limitação é o determinismo dos parâmetros: a demanda, as eficiências, os custos e a disponibilidade dos fornecedores são tratados como valores pontuais conhecidos, quando na realidade são estimativas com variabilidade. A análise por cenários (mais provável, otimista, pessimista) mitiga parte desse problema ao explorar uma faixa razoável de demanda, mas não substitui uma formulação estocástica (com distribuições probabilísticas dos parâmetros) ou robusta (que otimiza para o pior caso dentro de um conjunto de incerteza). A segunda limitação é o horizonte curto de dois períodos, suficiente para apresentar a mecânica do S\&OP mas insuficiente para capturar efeitos de longo prazo como sazonalidade anual, investimentos em capacidade ou desgaste de equipamentos. A terceira é a granularidade dos custos: o modelo trata todos os custos como lineares por unidade, sem incluir custos de \emph{setup} entre lotes, tempos de troca entre produtos ou economias de escala em compras. A quarta, mais conceitual, é a premissa de escolha racional plena --- assumir que a saída do solver representa a decisão correta da empresa pressupõe que todos os parâmetros estão calibrados, que todos os trade-offs relevantes estão modelados e que não há informação informal importante fora do modelo. Como discutido na Seção~\ref{sec:discussao}, essa premissa precisa ser relativizada à luz da racionalidade limitada.
+
+\paragraph{Sugestões de melhoria e aplicações em outros contextos.}
+A partir dessas limitações abrem-se cinco caminhos principais de evolução para o modelo. O primeiro é a incorporação de incerteza por meio de otimização estocástica ou robusta, com cenários ponderados por probabilidade ou conjuntos de incerteza paramétrica para cada variável crítica. O segundo é a adoção de um horizonte rolante, em que o modelo é re-executado a cada novo período com janela móvel de planejamento, absorvendo informação atualizada de demanda e estoque. O terceiro é a inclusão de custos de \emph{setup} e tempos de troca entre produtos, capturando a penalidade real de alternar a produção de $Y_1$ e $Y_2$ na mesma linha. O quarto é o acoplamento com técnicas estatísticas de \emph{forecasting} --- modelos clássicos como ARIMA e Holt-Winters, ou abordagens modernas baseadas em redes neurais ---, substituindo as estimativas pontuais por previsões com intervalo de confiança que alimentam diretamente o solver. O quinto é a extensão multiobjetivo, em que o lucro deixa de ser o único critério e passa a competir com indicadores de sustentabilidade (emissões de CO$_2$, consumo de água), nível de serviço ou risco operacional, gerando uma fronteira de Pareto de planos.
+
+O arcabouço metodológico desenvolvido neste trabalho --- formulação MILP, solver \emph{open-source} e integração via APS --- é diretamente aplicável a contextos análogos. Indústrias de processo como siderurgia, papel e cimento compartilham com a empresa de bioetanol a estrutura de cadeia multi-elo, máquinas em linha e decisões integradas de compras, produção e logística. O varejo multicanal pode usar a mesma família de modelos para coordenar reposição entre centros de distribuição e lojas físicas e digitais. O agronegócio enfrenta problemas estruturalmente equivalentes no planejamento de safra, transporte e armazenagem de grãos. O setor de energia, por fim, aplica formulações desse tipo no despacho integrado de geração, transmissão e demanda. Em todos esses domínios, a substituição do plano transacional manual pelo plano analítico otimizado tende a produzir os mesmos benefícios observados aqui: consistência por construção, rastreabilidade, rapidez de replanejamento e ampliação da racionalidade dos decisores.
+
+% =====================================================================
+\bibliographystyle{abbrv}
+\bibliography{referencias}
+
+\end{document}
